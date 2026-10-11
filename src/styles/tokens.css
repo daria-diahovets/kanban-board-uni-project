@@ -1,0 +1,94 @@
+:root {
+  --color-black: #000000;
+  --color-white: #ffffff;
+  --color-link: #0000ff;
+  --color-success: #008000;
+  --color-warning: #ffa500;
+  --color-error: #ff0000;
+  --color-info: #0000ff;
+
+  --surface-base: #ffffff;
+  --surface-inverted: #000000;
+  --surface-sunken: #f0f0f0;
+  --surface-sunken-hover: #e8e8e8;
+  --surface-disabled: #f5f5f5;
+
+  --content-primary: #000000;
+  --content-secondary: #666666;
+  --content-tertiary: #999999;
+  --content-inverse: #ffffff;
+
+  --border-color: #000000;
+  --border-color-disabled: #cccccc;
+  --border-color-error: #ff0000;
+
+  --font-headline: 'Archivo Black', 'Arial Black', sans-serif;
+  --font-body: 'Work Sans', 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'Space Mono', 'Courier New', monospace;
+
+  --weight-regular: 400;
+  --weight-semibold: 600;
+
+  --text-h1-size: 64px;
+  --text-h1-line: 1;
+  --text-h2-size: 48px;
+  --text-h2-line: 1.05;
+  --text-h3-size: 32px;
+  --text-h3-line: 1.1;
+  --text-h4-size: 22px;
+  --text-h4-line: 1.2;
+  --text-body-size: 16px;
+  --text-body-line: 1.6;
+  --text-small-size: 14px;
+  --text-small-line: 1.5;
+  --text-tiny-size: 12px;
+  --text-tiny-line: 1.4;
+  --text-mono-size: 15px;
+  --text-mono-line: 1.5;
+
+  --tracking-button: 2px;
+  --tracking-label: 1px;
+  --tracking-chip: 1px;
+
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 16px;
+  --sp-4: 24px;
+  --sp-5: 40px;
+  --sp-6: 64px;
+  --sp-7: 80px;
+  --sp-8: 120px;
+
+  --border-thin: 1px;
+  --border-thick: 3px;
+  --border-heavy: 5px;
+
+  --radius-none: 0;
+
+  --shadow-none: none;
+
+  --control-height-sm: 32px;
+  --control-height-md: 44px;
+  --control-height-lg: 56px;
+  --control-padding-sm: 6px 16px;
+  --control-padding-md: 10px 24px;
+  --control-padding-lg: 16px 40px;
+  --control-text-sm: 12px;
+  --control-text-md: 14px;
+  --control-text-lg: 18px;
+
+  --input-padding: 10px 12px;
+  --box-size: 20px;
+  --radio-dot-size: 10px;
+
+  --chip-padding: 4px 12px;
+  --chip-text: 10px;
+  --status-chip-padding: 2px 10px;
+  --status-chip-text: 11px;
+
+  --tooltip-max-width: 260px;
+  --tooltip-padding: 8px 12px;
+  --tooltip-text: 13px;
+
+  --overlay-backdrop: rgba(0, 0, 0, 0.5);
+}
