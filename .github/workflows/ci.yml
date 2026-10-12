@@ -23,6 +23,8 @@ jobs:
   backend:
     name: Backend typecheck
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5432/ci
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -31,6 +33,8 @@ jobs:
           cache: npm
           cache-dependency-path: backend/package-lock.json
       - run: npm ci
+        working-directory: backend
+      - run: npm run db:generate
         working-directory: backend
       - run: npm run typecheck
         working-directory: backend
