@@ -7,10 +7,22 @@ import tseslint from 'typescript-eslint'
 import prettier from 'eslint-config-prettier/flat'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
+const sharedRules = {
+  '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+  '@typescript-eslint/consistent-type-imports': 'error',
+}
+
 export default defineConfig([
-  globalIgnores(['dist', 'backend', 'node_modules']),
+  globalIgnores([
+    'dist',
+    'node_modules',
+    'backend/dist',
+    'backend/node_modules',
+    'backend/prisma/migrations',
+  ]),
   {
-    files: ['**/*.{ts,tsx}'],
+    name: 'frontend',
+    files: ['src/**/*.{ts,tsx}'],
     extends: [
       js.configs.recommended,
       tseslint.configs.recommended,
@@ -22,9 +34,17 @@ export default defineConfig([
     languageOptions: {
       globals: globals.browser,
     },
-    rules: {
-      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
-      '@typescript-eslint/consistent-type-imports': 'error',
+    rules: sharedRules,
+  },
+  {
+    name: 'backend',
+    files: ['backend/**/*.ts'],
+    extends: [js.configs.recommended, tseslint.configs.recommended, prettier],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      globals: globals.node,
     },
+    rules: sharedRules,
   },
 ])
