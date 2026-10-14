@@ -1,3 +1,5 @@
+import type { AccessTokenPayload } from '../lib/jwt'
+
 declare global {
   namespace Express {
     interface Request {
@@ -5,6 +7,11 @@ declare global {
         body?: unknown
         params?: unknown
         query?: unknown
+      }
+      user?: {
+        id: string
+        email: string
+        systemRole: AccessTokenPayload['systemRole']
       }
     }
   }
