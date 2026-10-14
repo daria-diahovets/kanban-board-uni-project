@@ -1,4 +1,5 @@
 import type { AccessTokenPayload } from '../lib/jwt'
+import type { BoardAccess } from '../services/boardAccess.service'
 
 declare global {
   namespace Express {
@@ -13,6 +14,7 @@ declare global {
         email: string
         systemRole: AccessTokenPayload['systemRole']
       }
+      boardAccess?: BoardAccess
     }
   }
 }
