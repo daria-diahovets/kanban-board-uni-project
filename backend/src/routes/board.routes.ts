@@ -16,10 +16,12 @@ import {
   createBoardSchema,
   updateBoardSchema,
 } from '../validators/board.validators'
+import { memberRouter } from './member.routes'
 
 export const boardRouter = Router()
 
 boardRouter.use(authenticate)
+boardRouter.use('/:boardId/members', memberRouter)
 
 boardRouter.get('/', listBoards)
 boardRouter.post('/', validate({ body: createBoardSchema }), postBoard)

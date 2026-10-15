@@ -1,6 +1,7 @@
 import type { User } from '@prisma/client'
 import { prisma } from '../config/prisma'
 import { ApiError } from '../lib/ApiError'
+import { normalizeEmail } from '../lib/email'
 import { signAccessToken } from '../lib/jwt'
 import { burnPasswordComparison, hashPassword, verifyPassword } from '../lib/password'
 import type { LoginInput, RegisterInput } from '../validators/auth.validators'
@@ -23,10 +24,6 @@ function toPublicUser(user: User): PublicUser {
     systemRole: user.systemRole,
     createdAt: user.createdAt,
   }
-}
-
-function normalizeEmail(email: string) {
-  return email.trim().toLowerCase()
 }
 
 export async function registerUser(input: RegisterInput) {
