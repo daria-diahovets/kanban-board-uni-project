@@ -17,11 +17,13 @@ import {
   updateBoardSchema,
 } from '../validators/board.validators'
 import { memberRouter } from './member.routes'
+import { shareLinkRouter } from './shareLink.routes'
 
 export const boardRouter = Router()
 
 boardRouter.use(authenticate)
 boardRouter.use('/:boardId/members', memberRouter)
+boardRouter.use('/:boardId/share-link', shareLinkRouter)
 
 boardRouter.get('/', listBoards)
 boardRouter.post('/', validate({ body: createBoardSchema }), postBoard)

@@ -1,3 +1,4 @@
+import type { Prisma } from '@prisma/client'
 import { prisma } from '../config/prisma'
 import { ApiError } from '../lib/ApiError'
 import type { CreateBoardInput, UpdateBoardInput } from '../validators/board.validators'
@@ -35,6 +36,62 @@ const BOARD_DETAIL_SELECT = {
   },
   _count: { select: { columns: true } },
 } as const
+
+const PUBLIC_BOARD_SELECT = {
+  id: true,
+  title: true,
+  description: true,
+  isArchived: true,
+  updatedAt: true,
+  owner: { select: { fullName: true } },
+  labels: { select: { id: true, name: true, colorToken: true }, orderBy: { name: 'asc' } },
+  columns: {
+    select: {
+      id: true,
+      title: true,
+      position: true,
+      wipLimit: true,
+      cards: {
+        where: { isArchived: false },
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          dueDate: true,
+          position: true,
+          labels: { select: { label: { select: { id: true, name: true, colorToken: true } } } },
+          assignees: { select: { user: { select: { id: true, fullName: true } } } },
+          _count: { select: { comments: true, attachments: true, checklistItems: true } },
+        },
+        orderBy: [{ position: 'asc' }, { createdAt: 'asc' }, { id: 'asc' }],
+      },
+    },
+    orderBy: [{ position: 'asc' }, { createdAt: 'asc' }, { id: 'asc' }],
+  },
+} satisfies Prisma.BoardSelect
+
+export async function getPublicBoardView(boardId: string) {
+  const board = await prisma.board.findUnique({
+    where: { id: boardId },
+    select: PUBLIC_BOARD_SELECT,
+  })
+
+  if (!board) {
+    throw ApiError.notFound('Board not found')
+  }
+
+  return {
+    ...board,
+    columns: board.columns.map((column) => ({
+      ...column,
+      cards: column.cards.map((card) => ({
+        ...card,
+        labels: card.labels.map((cardLabel) => cardLabel.label),
+        assignees: card.assignees.map((assignee) => assignee.user),
+      })),
+    })),
+  }
+}
 
 export async function listBoardsForUser(userId: string) {
   return prisma.board.findMany({
