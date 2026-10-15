@@ -9,6 +9,8 @@ type BodyParserError = Error & { type?: string; status?: number }
 const PRISMA_ERROR_MAP: Record<string, () => ApiError> = {
   P2002: () => ApiError.conflict('A record with these unique values already exists'),
   P2003: () => ApiError.badRequest('Referenced record does not exist'),
+  P2007: () => ApiError.badRequest('Request contains a value the database rejected'),
+  P2023: () => ApiError.badRequest('Identifier is malformed'),
   P2025: () => ApiError.notFound('Record not found'),
   P2034: () => ApiError.conflict('The operation conflicted with a concurrent change'),
 }
