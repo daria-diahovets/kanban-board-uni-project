@@ -11,6 +11,7 @@ import {
 } from '../services/board.service'
 import type {
   ArchiveBoardInput,
+  BoardQuery,
   CreateBoardInput,
   UpdateBoardInput,
 } from '../validators/board.validators'
@@ -22,8 +23,9 @@ export const listBoards: RequestHandler = async (request, response) => {
 
 export const getBoard: RequestHandler = async (request, response) => {
   const { boardId, role } = requireBoardAccess(request)
-  const board = await getBoardDetail(boardId)
-  response.json({ board, viewerRole: role })
+  const filters = (request.validated.query ?? {}) as BoardQuery
+  const board = await getBoardDetail(boardId, filters)
+  response.json({ board, viewerRole: role, filters })
 }
 
 export const postBoard: RequestHandler = async (request, response) => {

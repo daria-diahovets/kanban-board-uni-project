@@ -13,6 +13,7 @@ import { validate } from '../middleware/validate'
 import {
   archiveBoardSchema,
   boardIdParamsSchema,
+  boardQuerySchema,
   createBoardSchema,
   updateBoardSchema,
 } from '../validators/board.validators'
@@ -32,7 +33,7 @@ boardRouter.post('/', validate({ body: createBoardSchema }), postBoard)
 
 boardRouter.get(
   '/:boardId',
-  validate({ params: boardIdParamsSchema }),
+  validate({ params: boardIdParamsSchema, query: boardQuerySchema }),
   authorizeBoard('VIEWER'),
   getBoard,
 )

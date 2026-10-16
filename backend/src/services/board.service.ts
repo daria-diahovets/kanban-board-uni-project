@@ -1,7 +1,7 @@
 import type { Prisma } from '@prisma/client'
 import { prisma } from '../config/prisma'
 import { ApiError } from '../lib/ApiError'
-import type { CreateBoardInput, UpdateBoardInput } from '../validators/board.validators'
+import type { BoardQuery, CreateBoardInput, UpdateBoardInput } from '../validators/board.validators'
 
 const BOARD_SUMMARY_SELECT = {
   id: true,
@@ -34,7 +34,6 @@ const BOARD_DETAIL_SELECT = {
     select: { id: true, name: true, colorToken: true },
     orderBy: { name: 'asc' },
   },
-  _count: { select: { columns: true } },
 } as const
 
 const PUBLIC_BOARD_SELECT = {
@@ -101,17 +100,128 @@ export async function listBoardsForUser(userId: string) {
   })
 }
 
-export async function getBoardDetail(boardId: string) {
+function startOfToday() {
+  const date = new Date()
+  date.setHours(0, 0, 0, 0)
+  return date
+}
+
+function endOfToday() {
+  const date = new Date()
+  date.setHours(23, 59, 59, 999)
+  return date
+}
+
+function buildDueDateFilter(due: BoardQuery['due']): Prisma.CardWhereInput {
+  switch (due) {
+    case 'overdue':
+      return { dueDate: { lt: startOfToday() } }
+    case 'today':
+      return { dueDate: { gte: startOfToday(), lte: endOfToday() } }
+    case 'week': {
+      const weekAhead = endOfToday()
+      weekAhead.setDate(weekAhead.getDate() + 6)
+      return { dueDate: { gte: startOfToday(), lte: weekAhead } }
+    }
+    case 'none':
+      return { dueDate: null }
+    default:
+      return {}
+  }
+}
+
+function buildCardFilter(query: BoardQuery): Prisma.CardWhereInput {
+  const conditions: Prisma.CardWhereInput[] = [buildDueDateFilter(query.due)]
+
+  if (query.includeArchived !== true) {
+    conditions.push({ isArchived: false })
+  }
+
+  if (query.assigneeId) {
+    conditions.push({ assignees: { some: { userId: query.assigneeId } } })
+  }
+
+  if (query.labelId) {
+    conditions.push({ labels: { some: { labelId: query.labelId } } })
+  }
+
+  if (query.q) {
+    conditions.push({
+      OR: [
+        { title: { contains: query.q, mode: 'insensitive' } },
+        { description: { contains: query.q, mode: 'insensitive' } },
+      ],
+    })
+  }
+
+  return { AND: conditions }
+}
+
+export async function getBoardDetail(boardId: string, query: BoardQuery = {}) {
+  const cardFilter = buildCardFilter(query)
+
   const board = await prisma.board.findUnique({
     where: { id: boardId },
-    select: BOARD_DETAIL_SELECT,
+    select: {
+      ...BOARD_DETAIL_SELECT,
+      columns: {
+        select: {
+          id: true,
+          title: true,
+          position: true,
+          wipLimit: true,
+          createdAt: true,
+          cards: {
+            where: cardFilter,
+            select: {
+              id: true,
+              columnId: true,
+              title: true,
+              description: true,
+              dueDate: true,
+              position: true,
+              isArchived: true,
+              version: true,
+              createdAt: true,
+              updatedAt: true,
+              labels: {
+                select: { label: { select: { id: true, name: true, colorToken: true } } },
+              },
+              assignees: {
+                select: { user: { select: { id: true, email: true, fullName: true } } },
+                orderBy: { assignedAt: 'asc' },
+              },
+              _count: { select: { comments: true, attachments: true, checklistItems: true } },
+            },
+            orderBy: [{ position: 'asc' }, { createdAt: 'asc' }, { id: 'asc' }],
+          },
+          _count: { select: { cards: { where: { isArchived: false } } } },
+        },
+        orderBy: [{ position: 'asc' }, { createdAt: 'asc' }, { id: 'asc' }],
+      },
+    },
   })
 
   if (!board) {
     throw ApiError.notFound('Board not found')
   }
 
-  return board
+  return {
+    ...board,
+    columns: board.columns.map((column) => ({
+      id: column.id,
+      title: column.title,
+      position: column.position,
+      wipLimit: column.wipLimit,
+      createdAt: column.createdAt,
+      activeCardCount: column._count.cards,
+      cards: column.cards.map((card) => ({
+        ...card,
+        labels: card.labels.map((cardLabel) => cardLabel.label),
+        assignees: card.assignees.map((assignee) => assignee.user),
+      })),
+    })),
+  }
 }
 
 export async function createBoard(ownerId: string, input: CreateBoardInput) {
