@@ -9,6 +9,7 @@ import {
   createColumnSchema,
   updateColumnSchema,
 } from '../validators/column.validators'
+import { columnCardsRouter } from './card.routes'
 
 export const boardColumnsRouter = Router({ mergeParams: true })
 
@@ -22,6 +23,7 @@ boardColumnsRouter.post(
 export const columnRouter = Router()
 
 columnRouter.use(authenticate)
+columnRouter.use('/:columnId/cards', columnCardsRouter)
 
 columnRouter.patch(
   '/:columnId',
