@@ -6,6 +6,7 @@ import {
   putCardAssignees,
   removeCard,
 } from '../controllers/card.controller'
+import { putCardLabels } from '../controllers/label.controller'
 import { authenticate } from '../middleware/authenticate'
 import { authorizeBoard } from '../middleware/authorizeBoard'
 import { validate } from '../middleware/validate'
@@ -16,6 +17,7 @@ import {
   setAssigneesSchema,
   updateCardSchema,
 } from '../validators/card.validators'
+import { setCardLabelsSchema } from '../validators/label.validators'
 
 export const columnCardsRouter = Router({ mergeParams: true })
 
@@ -49,6 +51,13 @@ cardRouter.put(
   validate({ params: cardParamsSchema, body: setAssigneesSchema }),
   authorizeBoard('MEMBER'),
   putCardAssignees,
+)
+
+cardRouter.put(
+  '/:cardId/labels',
+  validate({ params: cardParamsSchema, body: setCardLabelsSchema }),
+  authorizeBoard('MEMBER'),
+  putCardLabels,
 )
 
 cardRouter.delete(

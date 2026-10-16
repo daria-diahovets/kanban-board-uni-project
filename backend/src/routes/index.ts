@@ -6,6 +6,7 @@ import { authRouter } from './auth.routes'
 import { boardRouter } from './board.routes'
 import { cardRouter } from './card.routes'
 import { columnRouter } from './column.routes'
+import { labelRouter } from './label.routes'
 import { publicRouter } from './public.routes'
 
 export const apiRouter = Router()
@@ -31,5 +32,6 @@ apiRouter.use('/auth', authRouter)
 apiRouter.use('/boards', boardRouter)
 apiRouter.use('/columns', columnRouter)
 apiRouter.use('/cards', cardRouter)
+apiRouter.use('/labels', labelRouter)
 apiRouter.use('/public', publicRouter)
 apiRouter.use('/admin', adminRouter)

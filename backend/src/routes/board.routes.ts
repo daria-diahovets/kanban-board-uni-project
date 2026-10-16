@@ -18,6 +18,7 @@ import {
   updateBoardSchema,
 } from '../validators/board.validators'
 import { boardColumnsRouter } from './column.routes'
+import { boardLabelsRouter } from './label.routes'
 import { memberRouter } from './member.routes'
 import { shareLinkRouter } from './shareLink.routes'
 
@@ -27,6 +28,7 @@ boardRouter.use(authenticate)
 boardRouter.use('/:boardId/members', memberRouter)
 boardRouter.use('/:boardId/share-link', shareLinkRouter)
 boardRouter.use('/:boardId/columns', boardColumnsRouter)
+boardRouter.use('/:boardId/labels', boardLabelsRouter)
 
 boardRouter.get('/', listBoards)
 boardRouter.post('/', validate({ body: createBoardSchema }), postBoard)

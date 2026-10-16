@@ -5,6 +5,7 @@ import type {
   SetAssigneesInput,
   UpdateCardInput,
 } from '../validators/card.validators'
+import type { SetCardLabelsInput } from '../validators/label.validators'
 import { POSITION_STEP } from './column.service'
 
 const CARD_SELECT = {
@@ -161,6 +162,38 @@ export async function setCardAssignees(boardId: string, cardId: string, input: S
     if (userIds.length > 0) {
       await transaction.cardAssignee.createMany({
         data: userIds.map((userId) => ({ cardId, userId })),
+      })
+    }
+
+    return transaction.card.update({
+      where: { id: cardId },
+      data: { version: { increment: 1 } },
+      select: CARD_SELECT,
+    })
+  })
+
+  return flattenCard(card)
+}
+
+export async function setCardLabels(boardId: string, cardId: string, input: SetCardLabelsInput) {
+  const labelIds = [...new Set(input.labelIds)]
+
+  if (labelIds.length > 0) {
+    const matchingLabels = await prisma.label.count({
+      where: { boardId, id: { in: labelIds } },
+    })
+
+    if (matchingLabels !== labelIds.length) {
+      throw ApiError.badRequest('Every label must belong to this board')
+    }
+  }
+
+  const card = await prisma.$transaction(async (transaction) => {
+    await transaction.cardLabel.deleteMany({ where: { cardId } })
+
+    if (labelIds.length > 0) {
+      await transaction.cardLabel.createMany({
+        data: labelIds.map((labelId) => ({ cardId, labelId })),
       })
     }
 
