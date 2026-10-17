@@ -8,6 +8,7 @@ import {
   setCardAssignees,
   updateCard,
 } from '../services/card.service'
+import { moveCard } from '../services/cardMove.service'
 import type {
   CardParams,
   ColumnCardsParams,
@@ -15,6 +16,7 @@ import type {
   SetAssigneesInput,
   UpdateCardInput,
 } from '../validators/card.validators'
+import type { MoveCardInput } from '../validators/cardMove.validators'
 
 export const postCard: RequestHandler = async (request, response) => {
   const { boardId } = requireBoardAccess(request)
@@ -51,4 +53,11 @@ export const removeCard: RequestHandler = async (request, response) => {
   const { cardId } = request.validated.params as CardParams
   await deleteCard(cardId)
   response.status(204).send()
+}
+
+export const postCardMove: RequestHandler = async (request, response) => {
+  const { boardId } = requireBoardAccess(request)
+  const { cardId } = request.validated.params as CardParams
+  const card = await moveCard(boardId, cardId, request.validated.body as MoveCardInput)
+  response.json({ card })
 }

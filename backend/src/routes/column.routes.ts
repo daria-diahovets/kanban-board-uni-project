@@ -1,5 +1,10 @@
 import { Router } from 'express'
-import { patchColumn, postColumn, removeColumn } from '../controllers/column.controller'
+import {
+  patchColumn,
+  postColumn,
+  postColumnMove,
+  removeColumn,
+} from '../controllers/column.controller'
 import { authenticate } from '../middleware/authenticate'
 import { authorizeBoard } from '../middleware/authorizeBoard'
 import { validate } from '../middleware/validate'
@@ -9,6 +14,7 @@ import {
   createColumnSchema,
   updateColumnSchema,
 } from '../validators/column.validators'
+import { moveColumnSchema } from '../validators/columnMove.validators'
 import { columnCardsRouter } from './card.routes'
 
 export const boardColumnsRouter = Router({ mergeParams: true })
@@ -30,6 +36,13 @@ columnRouter.patch(
   validate({ params: columnParamsSchema, body: updateColumnSchema }),
   authorizeBoard('OWNER'),
   patchColumn,
+)
+
+columnRouter.post(
+  '/:columnId/move',
+  validate({ params: columnParamsSchema, body: moveColumnSchema }),
+  authorizeBoard('OWNER'),
+  postColumnMove,
 )
 
 columnRouter.delete(

@@ -3,6 +3,7 @@ import {
   getCard,
   patchCard,
   postCard,
+  postCardMove,
   putCardAssignees,
   removeCard,
 } from '../controllers/card.controller'
@@ -17,6 +18,7 @@ import {
   setAssigneesSchema,
   updateCardSchema,
 } from '../validators/card.validators'
+import { moveCardSchema } from '../validators/cardMove.validators'
 import { setCardLabelsSchema } from '../validators/label.validators'
 
 export const columnCardsRouter = Router({ mergeParams: true })
@@ -51,6 +53,13 @@ cardRouter.put(
   validate({ params: cardParamsSchema, body: setAssigneesSchema }),
   authorizeBoard('MEMBER'),
   putCardAssignees,
+)
+
+cardRouter.post(
+  '/:cardId/move',
+  validate({ params: cardParamsSchema, body: moveCardSchema }),
+  authorizeBoard('MEMBER'),
+  postCardMove,
 )
 
 cardRouter.put(
