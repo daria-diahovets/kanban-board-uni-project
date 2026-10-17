@@ -1,8 +1,7 @@
 import { prisma } from '../config/prisma'
 import { ApiError } from '../lib/ApiError'
+import { firstPosition, positionAfter } from '../lib/position'
 import type { CreateColumnInput, UpdateColumnInput } from '../validators/column.validators'
-
-export const POSITION_STEP = 1024
 
 const COLUMN_SELECT = {
   id: true,
@@ -22,7 +21,7 @@ export async function createColumn(boardId: string, input: CreateColumnInput) {
     select: { position: true },
   })
 
-  const position = lastColumn ? lastColumn.position.plus(POSITION_STEP) : POSITION_STEP
+  const position = lastColumn ? positionAfter(lastColumn.position) : firstPosition()
 
   return prisma.column.create({
     data: {

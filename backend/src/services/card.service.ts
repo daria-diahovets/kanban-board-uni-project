@@ -5,8 +5,8 @@ import type {
   SetAssigneesInput,
   UpdateCardInput,
 } from '../validators/card.validators'
+import { firstPosition, positionAfter } from '../lib/position'
 import type { SetCardLabelsInput } from '../validators/label.validators'
-import { POSITION_STEP } from './column.service'
 
 const CARD_SELECT = {
   id: true,
@@ -112,7 +112,7 @@ export async function createCard(
       title: input.title,
       description: input.description ?? null,
       dueDate: input.dueDate ?? null,
-      position: lastCard ? lastCard.position.plus(POSITION_STEP) : POSITION_STEP,
+      position: lastCard ? positionAfter(lastCard.position) : firstPosition(),
       assignees: { create: assigneeIds.map((userId) => ({ userId })) },
     },
     select: CARD_SELECT,
