@@ -1,15 +1,22 @@
+import { createServer } from 'node:http'
 import { createApp } from './app'
 import { env } from './config/env'
 import { prisma } from './config/prisma'
+import { closeRealtime, initializeRealtime } from './realtime/io'
 
 const app = createApp()
+const server = createServer(app)
 
-const server = app.listen(env.PORT, () => {
+initializeRealtime(server)
+
+server.listen(env.PORT, () => {
   console.log(`API listening on http://localhost:${env.PORT} (${env.NODE_ENV})`)
 })
 
 async function shutdown(signal: string) {
   console.log(`Received ${signal}, shutting down`)
+
+  await closeRealtime()
 
   server.close(() => {
     void prisma.$disconnect().then(() => process.exit(0))
