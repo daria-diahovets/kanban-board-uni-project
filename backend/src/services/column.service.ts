@@ -1,6 +1,9 @@
 import { prisma } from '../config/prisma'
 import { ApiError } from '../lib/ApiError'
 import { firstPosition, positionAfter } from '../lib/position'
+import { emitToBoard } from '../realtime/emit'
+import type { BoardEventContext } from '../realtime/emit'
+import { SERVER_EVENTS } from '../realtime/events'
 import type { CreateColumnInput, UpdateColumnInput } from '../validators/column.validators'
 
 const COLUMN_SELECT = {
@@ -14,7 +17,7 @@ const COLUMN_SELECT = {
   _count: { select: { cards: true } },
 } as const
 
-export async function createColumn(boardId: string, input: CreateColumnInput) {
+export async function createColumn(boardId: string, input: CreateColumnInput, actorId: string) {
   const lastColumn = await prisma.column.findFirst({
     where: { boardId },
     orderBy: { position: 'desc' },
@@ -23,7 +26,7 @@ export async function createColumn(boardId: string, input: CreateColumnInput) {
 
   const position = lastColumn ? positionAfter(lastColumn.position) : firstPosition()
 
-  return prisma.column.create({
+  const column = await prisma.column.create({
     data: {
       boardId,
       title: input.title,
@@ -32,10 +35,18 @@ export async function createColumn(boardId: string, input: CreateColumnInput) {
     },
     select: COLUMN_SELECT,
   })
+
+  emitToBoard(boardId, SERVER_EVENTS.columnCreated, { actorId, column })
+
+  return column
 }
 
-export async function updateColumn(columnId: string, input: UpdateColumnInput) {
-  return prisma.column.update({
+export async function updateColumn(
+  columnId: string,
+  input: UpdateColumnInput,
+  context: BoardEventContext,
+) {
+  const column = await prisma.column.update({
     where: { id: columnId },
     data: {
       ...(input.title === undefined ? {} : { title: input.title }),
@@ -43,9 +54,13 @@ export async function updateColumn(columnId: string, input: UpdateColumnInput) {
     },
     select: COLUMN_SELECT,
   })
+
+  emitToBoard(context.boardId, SERVER_EVENTS.columnUpdated, { actorId: context.actorId, column })
+
+  return column
 }
 
-export async function deleteColumn(columnId: string) {
+export async function deleteColumn(columnId: string, context: BoardEventContext) {
   const cardCount = await prisma.card.count({ where: { columnId } })
 
   if (cardCount > 0) {
@@ -55,4 +70,9 @@ export async function deleteColumn(columnId: string) {
   }
 
   await prisma.column.delete({ where: { id: columnId } })
+
+  emitToBoard(context.boardId, SERVER_EVENTS.columnDeleted, {
+    actorId: context.actorId,
+    columnId,
+  })
 }

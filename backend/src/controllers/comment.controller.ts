@@ -27,6 +27,7 @@ export const listComments: RequestHandler = async (request, response) => {
 export const postComment: RequestHandler = async (request, response) => {
   const { cardId } = request.validated.params as CardCommentsParams
   const comment = await createComment(
+    requireBoardAccess(request).boardId,
     cardId,
     requireUser(request).id,
     request.validated.body as CreateCommentInput,
@@ -37,6 +38,7 @@ export const postComment: RequestHandler = async (request, response) => {
 export const patchComment: RequestHandler = async (request, response) => {
   const { commentId } = request.validated.params as CommentParams
   const comment = await updateComment(
+    requireBoardAccess(request).boardId,
     commentId,
     commentActor(request),
     request.validated.body as UpdateCommentInput,
@@ -46,6 +48,6 @@ export const patchComment: RequestHandler = async (request, response) => {
 
 export const removeComment: RequestHandler = async (request, response) => {
   const { commentId } = request.validated.params as CommentParams
-  await deleteComment(commentId, commentActor(request))
+  await deleteComment(requireBoardAccess(request).boardId, commentId, commentActor(request))
   response.status(204).send()
 }

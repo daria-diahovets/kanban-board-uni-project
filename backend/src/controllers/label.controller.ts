@@ -1,4 +1,5 @@
 import type { RequestHandler } from 'express'
+import { requireUser } from '../middleware/authenticate'
 import { requireBoardAccess } from '../middleware/authorizeBoard'
 import { setCardLabels } from '../services/card.service'
 import { createLabel, deleteLabel, listBoardLabels, updateLabel } from '../services/label.service'
@@ -37,6 +38,11 @@ export const removeLabel: RequestHandler = async (request, response) => {
 export const putCardLabels: RequestHandler = async (request, response) => {
   const { boardId } = requireBoardAccess(request)
   const { cardId } = request.validated.params as CardParams
-  const card = await setCardLabels(boardId, cardId, request.validated.body as SetCardLabelsInput)
+  const card = await setCardLabels(
+    boardId,
+    cardId,
+    request.validated.body as SetCardLabelsInput,
+    requireUser(request).id,
+  )
   response.json({ card })
 }

@@ -1,5 +1,7 @@
 import { prisma } from '../config/prisma'
 import { ApiError } from '../lib/ApiError'
+import { emitToBoard } from '../realtime/emit'
+import { SERVER_EVENTS } from '../realtime/events'
 import { normalizeEmail } from '../lib/email'
 import type { InviteMemberInput, UpdateMemberRoleInput } from '../validators/member.validators'
 
@@ -65,28 +67,39 @@ export async function inviteBoardMember(
     throw ApiError.conflict('This user is already a member of the board')
   }
 
-  return prisma.boardMember.create({
+  const member = await prisma.boardMember.create({
     data: { boardId, userId: invitee.id, role: input.role, invitedById },
     select: MEMBER_SELECT,
   })
+
+  emitToBoard(boardId, SERVER_EVENTS.memberAdded, { actorId: invitedById, member })
+
+  return member
 }
 
 export async function updateBoardMemberRole(
   boardId: string,
   userId: string,
   input: UpdateMemberRoleInput,
+  actorId: string,
 ) {
   await loadMembershipForMutation(boardId, userId)
 
-  return prisma.boardMember.update({
+  const member = await prisma.boardMember.update({
     where: { boardId_userId: { boardId, userId } },
     data: { role: input.role },
     select: MEMBER_SELECT,
   })
+
+  emitToBoard(boardId, SERVER_EVENTS.memberRoleChanged, { actorId, member })
+
+  return member
 }
 
-export async function removeBoardMember(boardId: string, userId: string) {
+export async function removeBoardMember(boardId: string, userId: string, actorId: string) {
   await loadMembershipForMutation(boardId, userId)
 
   await prisma.boardMember.delete({ where: { boardId_userId: { boardId, userId } } })
+
+  emitToBoard(boardId, SERVER_EVENTS.memberRemoved, { actorId, userId })
 }

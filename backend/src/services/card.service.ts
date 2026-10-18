@@ -6,6 +6,9 @@ import type {
   UpdateCardInput,
 } from '../validators/card.validators'
 import { firstPosition, positionAfter } from '../lib/position'
+import { emitToBoard } from '../realtime/emit'
+import type { BoardEventContext } from '../realtime/emit'
+import { SERVER_EVENTS } from '../realtime/events'
 import type { SetCardLabelsInput } from '../validators/label.validators'
 
 const CARD_SELECT = {
@@ -118,10 +121,18 @@ export async function createCard(
     select: CARD_SELECT,
   })
 
-  return flattenCard(card)
+  const created = flattenCard(card)
+
+  emitToBoard(boardId, SERVER_EVENTS.cardCreated, { actorId: createdById, card: created })
+
+  return created
 }
 
-export async function updateCard(cardId: string, input: UpdateCardInput) {
+export async function updateCard(
+  cardId: string,
+  input: UpdateCardInput,
+  context: BoardEventContext,
+) {
   if (input.version !== undefined) {
     const current = await prisma.card.findUnique({
       where: { id: cardId },
@@ -149,10 +160,22 @@ export async function updateCard(cardId: string, input: UpdateCardInput) {
     select: CARD_SELECT,
   })
 
-  return flattenCard(card)
+  const updated = flattenCard(card)
+
+  emitToBoard(context.boardId, SERVER_EVENTS.cardUpdated, {
+    actorId: context.actorId,
+    card: updated,
+  })
+
+  return updated
 }
 
-export async function setCardAssignees(boardId: string, cardId: string, input: SetAssigneesInput) {
+export async function setCardAssignees(
+  boardId: string,
+  cardId: string,
+  input: SetAssigneesInput,
+  actorId: string,
+) {
   const userIds = [...new Set(input.userIds)]
   await assertAssigneesAreBoardMembers(boardId, userIds)
 
@@ -172,10 +195,19 @@ export async function setCardAssignees(boardId: string, cardId: string, input: S
     })
   })
 
-  return flattenCard(card)
+  const updated = flattenCard(card)
+
+  emitToBoard(boardId, SERVER_EVENTS.cardUpdated, { actorId, card: updated })
+
+  return updated
 }
 
-export async function setCardLabels(boardId: string, cardId: string, input: SetCardLabelsInput) {
+export async function setCardLabels(
+  boardId: string,
+  cardId: string,
+  input: SetCardLabelsInput,
+  actorId: string,
+) {
   const labelIds = [...new Set(input.labelIds)]
 
   if (labelIds.length > 0) {
@@ -204,9 +236,22 @@ export async function setCardLabels(boardId: string, cardId: string, input: SetC
     })
   })
 
-  return flattenCard(card)
+  const updated = flattenCard(card)
+
+  emitToBoard(boardId, SERVER_EVENTS.cardUpdated, { actorId, card: updated })
+
+  return updated
 }
 
-export async function deleteCard(cardId: string) {
-  await prisma.card.delete({ where: { id: cardId } })
+export async function deleteCard(cardId: string, context: BoardEventContext) {
+  const card = await prisma.card.delete({
+    where: { id: cardId },
+    select: { id: true, columnId: true },
+  })
+
+  emitToBoard(context.boardId, SERVER_EVENTS.cardDeleted, {
+    actorId: context.actorId,
+    cardId: card.id,
+    columnId: card.columnId,
+  })
 }

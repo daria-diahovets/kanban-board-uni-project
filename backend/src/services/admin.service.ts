@@ -1,5 +1,7 @@
 import { prisma } from '../config/prisma'
 import { ApiError } from '../lib/ApiError'
+import { emitToBoard } from '../realtime/emit'
+import { SERVER_EVENTS } from '../realtime/events'
 
 const ADMIN_BOARD_SELECT = {
   id: true,
@@ -19,8 +21,8 @@ export async function listAllBoards() {
   })
 }
 
-export async function transferBoardOwnership(boardId: string, newOwnerId: string) {
-  return prisma.$transaction(async (transaction) => {
+export async function transferBoardOwnership(boardId: string, newOwnerId: string, actorId: string) {
+  const board = await prisma.$transaction(async (transaction) => {
     const board = await transaction.board.findUnique({
       where: { id: boardId },
       select: { ownerId: true },
@@ -60,4 +62,8 @@ export async function transferBoardOwnership(boardId: string, newOwnerId: string
       select: ADMIN_BOARD_SELECT,
     })
   })
+
+  emitToBoard(boardId, SERVER_EVENTS.boardUpdated, { actorId, board })
+
+  return board
 }

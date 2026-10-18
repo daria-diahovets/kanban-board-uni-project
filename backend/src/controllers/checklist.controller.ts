@@ -1,4 +1,6 @@
 import type { RequestHandler } from 'express'
+import { requireUser } from '../middleware/authenticate'
+import { boardEventContext, requireBoardAccess } from '../middleware/authorizeBoard'
 import {
   createChecklistItem,
   deleteChecklistItem,
@@ -20,18 +22,27 @@ export const listChecklist: RequestHandler = async (request, response) => {
 
 export const postChecklistItem: RequestHandler = async (request, response) => {
   const { cardId } = request.validated.params as CardChecklistParams
-  const item = await createChecklistItem(cardId, request.validated.body as CreateChecklistItemInput)
+  const item = await createChecklistItem(
+    requireBoardAccess(request).boardId,
+    cardId,
+    request.validated.body as CreateChecklistItemInput,
+    requireUser(request).id,
+  )
   response.status(201).json({ item })
 }
 
 export const patchChecklistItem: RequestHandler = async (request, response) => {
   const { itemId } = request.validated.params as ChecklistItemParams
-  const item = await updateChecklistItem(itemId, request.validated.body as UpdateChecklistItemInput)
+  const item = await updateChecklistItem(
+    itemId,
+    request.validated.body as UpdateChecklistItemInput,
+    boardEventContext(request),
+  )
   response.json({ item })
 }
 
 export const removeChecklistItem: RequestHandler = async (request, response) => {
   const { itemId } = request.validated.params as ChecklistItemParams
-  await deleteChecklistItem(itemId)
+  await deleteChecklistItem(itemId, boardEventContext(request))
   response.status(204).send()
 }

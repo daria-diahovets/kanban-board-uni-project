@@ -15,12 +15,14 @@ export const SERVER_EVENTS = {
   columnMoved: 'column:moved',
   columnDeleted: 'column:deleted',
   commentCreated: 'comment:created',
+  commentUpdated: 'comment:updated',
   commentDeleted: 'comment:deleted',
   memberAdded: 'member:added',
   memberRemoved: 'member:removed',
   memberRoleChanged: 'member:role-changed',
   boardUpdated: 'board:updated',
   boardArchived: 'board:archived',
+  boardDeleted: 'board:deleted',
 } as const
 
 export type ServerEvent = (typeof SERVER_EVENTS)[keyof typeof SERVER_EVENTS]

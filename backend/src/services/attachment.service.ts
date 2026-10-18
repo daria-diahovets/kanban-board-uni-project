@@ -2,6 +2,9 @@ import { unlink } from 'node:fs/promises'
 import { prisma } from '../config/prisma'
 import { storedFilePath } from '../config/storage'
 import { ApiError } from '../lib/ApiError'
+import { emitToBoard } from '../realtime/emit'
+import type { BoardEventContext } from '../realtime/emit'
+import { SERVER_EVENTS } from '../realtime/events'
 
 const ATTACHMENT_SELECT = {
   id: true,
@@ -38,9 +41,14 @@ export async function listCardAttachments(cardId: string) {
   })
 }
 
-export async function createAttachment(cardId: string, uploadedById: string, file: StoredFile) {
+export async function createAttachment(
+  boardId: string,
+  cardId: string,
+  uploadedById: string,
+  file: StoredFile,
+) {
   try {
-    return await prisma.attachment.create({
+    const attachment = await prisma.attachment.create({
       data: {
         cardId,
         uploadedById,
@@ -51,6 +59,14 @@ export async function createAttachment(cardId: string, uploadedById: string, fil
       },
       select: ATTACHMENT_SELECT,
     })
+
+    emitToBoard(boardId, SERVER_EVENTS.cardUpdated, {
+      actorId: uploadedById,
+      cardId,
+      attachment,
+    })
+
+    return attachment
   } catch (error) {
     await removeStoredFile(file.filename)
     throw error
@@ -74,10 +90,10 @@ export async function getAttachmentForDownload(attachmentId: string) {
   }
 }
 
-export async function deleteAttachment(attachmentId: string) {
+export async function deleteAttachment(attachmentId: string, context: BoardEventContext) {
   const attachment = await prisma.attachment.findUnique({
     where: { id: attachmentId },
-    select: { storedName: true },
+    select: { storedName: true, cardId: true },
   })
 
   if (!attachment) {
@@ -86,4 +102,10 @@ export async function deleteAttachment(attachmentId: string) {
 
   await prisma.attachment.delete({ where: { id: attachmentId } })
   await removeStoredFile(attachment.storedName)
+
+  emitToBoard(context.boardId, SERVER_EVENTS.cardUpdated, {
+    actorId: context.actorId,
+    cardId: attachment.cardId,
+    removedAttachmentId: attachmentId,
+  })
 }

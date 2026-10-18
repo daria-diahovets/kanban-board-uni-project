@@ -38,19 +38,23 @@ export const postBoard: RequestHandler = async (request, response) => {
 
 export const patchBoard: RequestHandler = async (request, response) => {
   const { boardId } = requireBoardAccess(request)
-  const board = await updateBoard(boardId, request.validated.body as UpdateBoardInput)
+  const board = await updateBoard(
+    boardId,
+    request.validated.body as UpdateBoardInput,
+    requireUser(request).id,
+  )
   response.json({ board })
 }
 
 export const patchBoardArchive: RequestHandler = async (request, response) => {
   const { boardId } = requireBoardAccess(request)
   const { isArchived } = request.validated.body as ArchiveBoardInput
-  const board = await setBoardArchived(boardId, isArchived)
+  const board = await setBoardArchived(boardId, isArchived, requireUser(request).id)
   response.json({ board })
 }
 
 export const removeBoard: RequestHandler = async (request, response) => {
   const { boardId } = requireBoardAccess(request)
-  await deleteBoard(boardId)
+  await deleteBoard(boardId, requireUser(request).id)
   response.status(204).send()
 }

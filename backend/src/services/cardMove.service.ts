@@ -8,6 +8,8 @@ import {
 import type { OrderAnchor } from '../lib/ordering'
 import { needsRebalance, positionBetween, rebalancedPositions } from '../lib/position'
 import { runSerializable } from '../lib/transaction'
+import { emitToBoard } from '../realtime/emit'
+import { SERVER_EVENTS } from '../realtime/events'
 import type { TransactionClient } from '../lib/transaction'
 import type { MoveCardInput } from '../validators/cardMove.validators'
 
@@ -131,12 +133,17 @@ async function assertWipLimitAllowsIncomingCard(
   }
 }
 
-export async function moveCard(boardId: string, cardId: string, input: MoveCardInput) {
+export async function moveCard(
+  boardId: string,
+  cardId: string,
+  input: MoveCardInput,
+  actorId: string,
+) {
   if (input.prevCardId === cardId || input.nextCardId === cardId) {
     throw ApiError.badRequest('A card cannot be positioned relative to itself')
   }
 
-  return runSerializable(async (transaction) => {
+  const card = await runSerializable(async (transaction) => {
     await lockColumnRow(transaction, input.targetColumnId)
     await lockCardRow(transaction, cardId)
 
@@ -181,4 +188,8 @@ export async function moveCard(boardId: string, cardId: string, input: MoveCardI
       select: MOVED_CARD_SELECT,
     })
   })
+
+  emitToBoard(boardId, SERVER_EVENTS.cardMoved, { actorId, card })
+
+  return card
 }

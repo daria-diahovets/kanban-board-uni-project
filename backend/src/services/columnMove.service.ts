@@ -8,6 +8,8 @@ import {
 import type { OrderAnchor } from '../lib/ordering'
 import { needsRebalance, positionBetween, rebalancedPositions } from '../lib/position'
 import { runSerializable } from '../lib/transaction'
+import { emitToBoard } from '../realtime/emit'
+import { SERVER_EVENTS } from '../realtime/events'
 import type { TransactionClient } from '../lib/transaction'
 import type { MoveColumnInput } from '../validators/columnMove.validators'
 
@@ -101,12 +103,17 @@ async function rebalanceBoard(transaction: TransactionClient, boardId: string, c
   }
 }
 
-export async function moveColumn(boardId: string, columnId: string, input: MoveColumnInput) {
+export async function moveColumn(
+  boardId: string,
+  columnId: string,
+  input: MoveColumnInput,
+  actorId: string,
+) {
   if (input.prevColumnId === columnId || input.nextColumnId === columnId) {
     throw ApiError.badRequest('A column cannot be positioned relative to itself')
   }
 
-  return runSerializable(async (transaction) => {
+  const column = await runSerializable(async (transaction) => {
     await lockBoardRow(transaction, boardId)
     await lockColumnRow(transaction, columnId)
 
@@ -136,4 +143,8 @@ export async function moveColumn(boardId: string, columnId: string, input: MoveC
       select: MOVED_COLUMN_SELECT,
     })
   })
+
+  emitToBoard(boardId, SERVER_EVENTS.columnMoved, { actorId, column })
+
+  return column
 }

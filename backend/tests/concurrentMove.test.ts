@@ -223,3 +223,56 @@ describe('POST /api/cards/:cardId/move under concurrency', () => {
     expect(await prisma.card.count({ where: { columnId: column.id } })).toBe(insertions + 2)
   })
 })
+
+describe('POST /api/columns/:columnId/move under concurrency', () => {
+  async function orderedColumns(boardId: string) {
+    const columns = await prisma.column.findMany({
+      where: { boardId },
+      orderBy: CANONICAL_ORDER,
+      select: { id: true, title: true, position: true },
+    })
+
+    return columns.map((column) => ({ ...column, position: column.position.toNumber() }))
+  }
+
+  it('keeps the board order intact when eight columns race into the same slot', async () => {
+    const writers = 8
+    const rounds = 3
+    const owner = await createUser()
+    const { board, columns } = await createBoardWithColumns(owner.id, [
+      'LEFT',
+      'RIGHT',
+      ...Array.from({ length: writers }, (_, index) => `W${index}`),
+    ])
+    const left = at(columns, 0)
+    const right = at(columns, 1)
+    const movers = columns.slice(2)
+    const slot = { prevColumnId: left.id, nextColumnId: right.id }
+
+    for (let round = 1; round <= rounds; round++) {
+      const responses = await Promise.all(
+        movers.map((mover) =>
+          api()
+            .post(`/api/columns/${mover.id}/move`)
+            .set('authorization', bearer(owner.token))
+            .send(slot),
+        ),
+      )
+
+      expect(responses.map((response) => response.status)).toEqual(Array(writers).fill(200))
+
+      const resulting = await orderedColumns(board.id)
+      const positions = resulting.map((column) => column.position)
+      const titles = resulting.map((column) => column.title)
+
+      expect(resulting).toHaveLength(writers + 2)
+      expect(new Set(positions).size).toBe(writers + 2)
+      expect(isStrictlyAscending(positions)).toBe(true)
+      expect(titles[0]).toBe('LEFT')
+      expect(titles[writers + 1]).toBe('RIGHT')
+      expect(sorted(titles.slice(1, writers + 1))).toEqual(
+        sorted(movers.map((mover) => mover.title)),
+      )
+    }
+  })
+})

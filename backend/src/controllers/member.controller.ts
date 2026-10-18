@@ -36,6 +36,7 @@ export const patchMemberRole: RequestHandler = async (request, response) => {
     boardId,
     userId,
     request.validated.body as UpdateMemberRoleInput,
+    requireUser(request).id,
   )
   response.json({ member })
 }
@@ -43,6 +44,6 @@ export const patchMemberRole: RequestHandler = async (request, response) => {
 export const removeMember: RequestHandler = async (request, response) => {
   const { boardId } = requireBoardAccess(request)
   const { userId } = request.validated.params as BoardMemberParams
-  await removeBoardMember(boardId, userId)
+  await removeBoardMember(boardId, userId, requireUser(request).id)
   response.status(204).send()
 }

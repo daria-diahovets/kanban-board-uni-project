@@ -1,5 +1,7 @@
 import { prisma } from '../config/prisma'
 import { ApiError } from '../lib/ApiError'
+import { emitToBoard } from '../realtime/emit'
+import { SERVER_EVENTS } from '../realtime/events'
 import type { CreateCommentInput, UpdateCommentInput } from '../validators/comment.validators'
 
 const COMMENT_SELECT = {
@@ -16,17 +18,17 @@ type CommentActor = {
   isOwner: boolean
 }
 
-async function findCommentAuthor(commentId: string) {
+async function findComment(commentId: string) {
   const comment = await prisma.comment.findUnique({
     where: { id: commentId },
-    select: { authorId: true },
+    select: { authorId: true, cardId: true },
   })
 
   if (!comment) {
     throw ApiError.notFound('Comment not found')
   }
 
-  return comment.authorId
+  return comment
 }
 
 export async function listCardComments(cardId: string) {
@@ -37,37 +39,61 @@ export async function listCardComments(cardId: string) {
   })
 }
 
-export async function createComment(cardId: string, authorId: string, input: CreateCommentInput) {
-  return prisma.comment.create({
+export async function createComment(
+  boardId: string,
+  cardId: string,
+  authorId: string,
+  input: CreateCommentInput,
+) {
+  const comment = await prisma.comment.create({
     data: { cardId, authorId, body: input.body },
     select: COMMENT_SELECT,
   })
+
+  emitToBoard(boardId, SERVER_EVENTS.commentCreated, { actorId: authorId, cardId, comment })
+
+  return comment
 }
 
 export async function updateComment(
+  boardId: string,
   commentId: string,
   actor: CommentActor,
   input: UpdateCommentInput,
 ) {
-  const authorId = await findCommentAuthor(commentId)
+  const existing = await findComment(commentId)
 
-  if (authorId !== actor.id) {
+  if (existing.authorId !== actor.id) {
     throw ApiError.forbidden('Only the author can edit a comment')
   }
 
-  return prisma.comment.update({
+  const comment = await prisma.comment.update({
     where: { id: commentId },
     data: { body: input.body },
     select: COMMENT_SELECT,
   })
+
+  emitToBoard(boardId, SERVER_EVENTS.commentUpdated, {
+    actorId: actor.id,
+    cardId: existing.cardId,
+    comment,
+  })
+
+  return comment
 }
 
-export async function deleteComment(commentId: string, actor: CommentActor) {
-  const authorId = await findCommentAuthor(commentId)
+export async function deleteComment(boardId: string, commentId: string, actor: CommentActor) {
+  const existing = await findComment(commentId)
 
-  if (authorId !== actor.id && !actor.isOwner) {
+  if (existing.authorId !== actor.id && !actor.isOwner) {
     throw ApiError.forbidden('Only the author or the board owner can delete a comment')
   }
 
   await prisma.comment.delete({ where: { id: commentId } })
+
+  emitToBoard(boardId, SERVER_EVENTS.commentDeleted, {
+    actorId: actor.id,
+    cardId: existing.cardId,
+    commentId,
+  })
 }

@@ -1,6 +1,8 @@
 import type { Prisma } from '@prisma/client'
 import { prisma } from '../config/prisma'
 import { ApiError } from '../lib/ApiError'
+import { emitToBoard } from '../realtime/emit'
+import { SERVER_EVENTS } from '../realtime/events'
 import type { BoardQuery, CreateBoardInput, UpdateBoardInput } from '../validators/board.validators'
 
 const BOARD_SUMMARY_SELECT = {
@@ -240,8 +242,8 @@ export async function createBoard(ownerId: string, input: CreateBoardInput) {
   return board
 }
 
-export async function updateBoard(boardId: string, input: UpdateBoardInput) {
-  return prisma.board.update({
+export async function updateBoard(boardId: string, input: UpdateBoardInput, actorId: string) {
+  const board = await prisma.board.update({
     where: { id: boardId },
     data: {
       ...(input.title === undefined ? {} : { title: input.title }),
@@ -249,16 +251,26 @@ export async function updateBoard(boardId: string, input: UpdateBoardInput) {
     },
     select: BOARD_SUMMARY_SELECT,
   })
+
+  emitToBoard(boardId, SERVER_EVENTS.boardUpdated, { actorId, board })
+
+  return board
 }
 
-export async function setBoardArchived(boardId: string, isArchived: boolean) {
-  return prisma.board.update({
+export async function setBoardArchived(boardId: string, isArchived: boolean, actorId: string) {
+  const board = await prisma.board.update({
     where: { id: boardId },
     data: { isArchived },
     select: BOARD_SUMMARY_SELECT,
   })
+
+  emitToBoard(boardId, SERVER_EVENTS.boardArchived, { actorId, isArchived, board })
+
+  return board
 }
 
-export async function deleteBoard(boardId: string) {
+export async function deleteBoard(boardId: string, actorId: string) {
   await prisma.board.delete({ where: { id: boardId } })
+
+  emitToBoard(boardId, SERVER_EVENTS.boardDeleted, { actorId })
 }

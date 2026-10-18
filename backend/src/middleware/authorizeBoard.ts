@@ -1,6 +1,7 @@
 import type { BoardRole } from '@prisma/client'
 import type { RequestHandler } from 'express'
 import { ApiError } from '../lib/ApiError'
+import type { BoardEventContext } from '../realtime/emit'
 import { BOARD_ROLE_RANK, getBoardAccess, resolveBoardId } from '../services/boardAccess.service'
 import { requireUser } from './authenticate'
 
@@ -40,4 +41,11 @@ export function requireBoardAccess(request: Express.Request) {
   }
 
   return request.boardAccess
+}
+
+export function boardEventContext(request: Express.Request): BoardEventContext {
+  return {
+    boardId: requireBoardAccess(request).boardId,
+    actorId: requireUser(request).id,
+  }
 }

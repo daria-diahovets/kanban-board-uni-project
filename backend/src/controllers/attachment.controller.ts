@@ -1,6 +1,7 @@
 import type { RequestHandler } from 'express'
 import { ApiError } from '../lib/ApiError'
 import { requireUser } from '../middleware/authenticate'
+import { boardEventContext, requireBoardAccess } from '../middleware/authorizeBoard'
 import {
   createAttachment,
   deleteAttachment,
@@ -22,7 +23,12 @@ export const postAttachment: RequestHandler = async (request, response) => {
     throw ApiError.badRequest('A file is required in the "file" field')
   }
 
-  const attachment = await createAttachment(cardId, requireUser(request).id, request.file)
+  const attachment = await createAttachment(
+    requireBoardAccess(request).boardId,
+    cardId,
+    requireUser(request).id,
+    request.file,
+  )
   response.status(201).json({ attachment })
 }
 
@@ -47,6 +53,6 @@ export const downloadAttachment: RequestHandler = async (request, response, next
 
 export const removeAttachment: RequestHandler = async (request, response) => {
   const { attachmentId } = request.validated.params as AttachmentParams
-  await deleteAttachment(attachmentId)
+  await deleteAttachment(attachmentId, boardEventContext(request))
   response.status(204).send()
 }

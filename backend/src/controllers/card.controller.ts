@@ -1,6 +1,6 @@
 import type { RequestHandler } from 'express'
 import { requireUser } from '../middleware/authenticate'
-import { requireBoardAccess } from '../middleware/authorizeBoard'
+import { boardEventContext, requireBoardAccess } from '../middleware/authorizeBoard'
 import {
   createCard,
   deleteCard,
@@ -38,26 +38,40 @@ export const getCard: RequestHandler = async (request, response) => {
 
 export const patchCard: RequestHandler = async (request, response) => {
   const { cardId } = request.validated.params as CardParams
-  const card = await updateCard(cardId, request.validated.body as UpdateCardInput)
+  const card = await updateCard(
+    cardId,
+    request.validated.body as UpdateCardInput,
+    boardEventContext(request),
+  )
   response.json({ card })
 }
 
 export const putCardAssignees: RequestHandler = async (request, response) => {
   const { boardId } = requireBoardAccess(request)
   const { cardId } = request.validated.params as CardParams
-  const card = await setCardAssignees(boardId, cardId, request.validated.body as SetAssigneesInput)
+  const card = await setCardAssignees(
+    boardId,
+    cardId,
+    request.validated.body as SetAssigneesInput,
+    requireUser(request).id,
+  )
   response.json({ card })
 }
 
 export const removeCard: RequestHandler = async (request, response) => {
   const { cardId } = request.validated.params as CardParams
-  await deleteCard(cardId)
+  await deleteCard(cardId, boardEventContext(request))
   response.status(204).send()
 }
 
 export const postCardMove: RequestHandler = async (request, response) => {
   const { boardId } = requireBoardAccess(request)
   const { cardId } = request.validated.params as CardParams
-  const card = await moveCard(boardId, cardId, request.validated.body as MoveCardInput)
+  const card = await moveCard(
+    boardId,
+    cardId,
+    request.validated.body as MoveCardInput,
+    requireUser(request).id,
+  )
   response.json({ card })
 }
