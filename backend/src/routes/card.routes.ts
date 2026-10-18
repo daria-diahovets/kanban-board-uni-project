@@ -20,6 +20,8 @@ import {
 } from '../validators/card.validators'
 import { moveCardSchema } from '../validators/cardMove.validators'
 import { setCardLabelsSchema } from '../validators/label.validators'
+import { cardChecklistRouter } from './checklist.routes'
+import { cardCommentsRouter } from './comment.routes'
 
 export const columnCardsRouter = Router({ mergeParams: true })
 
@@ -33,6 +35,8 @@ columnCardsRouter.post(
 export const cardRouter = Router()
 
 cardRouter.use(authenticate)
+cardRouter.use('/:cardId/comments', cardCommentsRouter)
+cardRouter.use('/:cardId/checklist', cardChecklistRouter)
 
 cardRouter.get(
   '/:cardId',

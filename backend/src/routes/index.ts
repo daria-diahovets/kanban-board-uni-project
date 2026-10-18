@@ -5,7 +5,9 @@ import { adminRouter } from './admin.routes'
 import { authRouter } from './auth.routes'
 import { boardRouter } from './board.routes'
 import { cardRouter } from './card.routes'
+import { checklistRouter } from './checklist.routes'
 import { columnRouter } from './column.routes'
+import { commentRouter } from './comment.routes'
 import { labelRouter } from './label.routes'
 import { publicRouter } from './public.routes'
 
@@ -32,6 +34,8 @@ apiRouter.use('/auth', authRouter)
 apiRouter.use('/boards', boardRouter)
 apiRouter.use('/columns', columnRouter)
 apiRouter.use('/cards', cardRouter)
+apiRouter.use('/comments', commentRouter)
+apiRouter.use('/checklist', checklistRouter)
 apiRouter.use('/labels', labelRouter)
 apiRouter.use('/public', publicRouter)
 apiRouter.use('/admin', adminRouter)

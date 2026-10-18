@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { prisma } from '../src/config/prisma'
 import { api, bearer } from './helpers/api'
+import { at, sorted } from './helpers/items'
 import {
   createBoardWithColumns,
   createCard,
@@ -21,16 +22,6 @@ type MoveBody = {
   nextCardId?: string | null
 }
 
-function at<T>(items: T[], index: number): T {
-  const item = items[index]
-
-  if (item === undefined) {
-    throw new Error(`Expected an element at index ${index}, received ${items.length} elements`)
-  }
-
-  return item
-}
-
 function moveCard(token: string, cardId: string, body: MoveBody) {
   return api().post(`/api/cards/${cardId}/move`).set('authorization', bearer(token)).send(body)
 }
@@ -43,10 +34,6 @@ async function orderedCards(columnId: string) {
   })
 
   return cards.map((card) => ({ ...card, position: card.position.toNumber() }))
-}
-
-function sorted<T>(values: T[]) {
-  return [...values].sort()
 }
 
 function isStrictlyAscending(values: number[]) {
