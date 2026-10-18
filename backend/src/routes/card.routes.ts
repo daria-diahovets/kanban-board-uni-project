@@ -20,6 +20,7 @@ import {
 } from '../validators/card.validators'
 import { moveCardSchema } from '../validators/cardMove.validators'
 import { setCardLabelsSchema } from '../validators/label.validators'
+import { cardAttachmentsRouter } from './attachment.routes'
 import { cardChecklistRouter } from './checklist.routes'
 import { cardCommentsRouter } from './comment.routes'
 
@@ -37,6 +38,7 @@ export const cardRouter = Router()
 cardRouter.use(authenticate)
 cardRouter.use('/:cardId/comments', cardCommentsRouter)
 cardRouter.use('/:cardId/checklist', cardChecklistRouter)
+cardRouter.use('/:cardId/attachments', cardAttachmentsRouter)
 
 cardRouter.get(
   '/:cardId',

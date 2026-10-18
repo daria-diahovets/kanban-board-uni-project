@@ -1,7 +1,8 @@
 import { Prisma } from '@prisma/client'
 import type { ErrorRequestHandler, RequestHandler } from 'express'
+import { MulterError } from 'multer'
 import { ZodError, z } from 'zod'
-import { isProduction } from '../config/env'
+import { env, isProduction } from '../config/env'
 import { ApiError } from '../lib/ApiError'
 
 type BodyParserError = Error & { type?: string; status?: number }
@@ -22,6 +23,14 @@ function toApiError(error: unknown): ApiError {
 
   if (error instanceof ZodError) {
     return ApiError.validationFailed(z.treeifyError(error))
+  }
+
+  if (error instanceof MulterError) {
+    if (error.code === 'LIMIT_FILE_SIZE') {
+      return ApiError.payloadTooLarge(`File exceeds the ${env.MAX_UPLOAD_BYTES} byte limit`)
+    }
+
+    return ApiError.badRequest(`Upload rejected: ${error.message}`)
   }
 
   if (error instanceof Prisma.PrismaClientKnownRequestError) {

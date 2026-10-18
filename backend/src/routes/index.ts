@@ -2,6 +2,7 @@ import { Router } from 'express'
 import { env } from '../config/env'
 import { assertDatabaseConnection } from '../config/prisma'
 import { adminRouter } from './admin.routes'
+import { attachmentRouter } from './attachment.routes'
 import { authRouter } from './auth.routes'
 import { boardRouter } from './board.routes'
 import { cardRouter } from './card.routes'
@@ -36,6 +37,7 @@ apiRouter.use('/columns', columnRouter)
 apiRouter.use('/cards', cardRouter)
 apiRouter.use('/comments', commentRouter)
 apiRouter.use('/checklist', checklistRouter)
+apiRouter.use('/attachments', attachmentRouter)
 apiRouter.use('/labels', labelRouter)
 apiRouter.use('/public', publicRouter)
 apiRouter.use('/admin', adminRouter)

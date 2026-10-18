@@ -1,6 +1,9 @@
+import { readFile, readdir } from 'node:fs/promises'
+import { join } from 'node:path'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { prisma } from '../src/config/prisma'
 import { api, bearer } from './helpers/api'
+import { temporaryUploadDirectory } from './helpers/env'
 import {
   addBoardMember,
   createBoardWithColumns,
@@ -551,5 +554,143 @@ describe('card checklist', () => {
     expect(empty.status).toBe(422)
     expect(nothingToUpdate.status).toBe(422)
     expect(unknown.status).toBe(404)
+  })
+})
+
+describe('card attachments', () => {
+  const textFile = Buffer.from('Notes for the sprint review')
+
+  async function upload(user: TestUser, cardId: string, filename: string, contentType: string) {
+    return api()
+      .post(`/api/cards/${cardId}/attachments`)
+      .set('authorization', asUser(user))
+      .attach('file', textFile, { filename, contentType })
+  }
+
+  it('stores a file under a generated name and lists it', async () => {
+    const card = await createCard(fixture.todoId, fixture.owner.id, { title: 'Has a file' })
+    const created = await upload(fixture.member, card.id, 'sprint notes.txt', 'text/plain')
+
+    expect(created.status).toBe(201)
+    expect(created.body.attachment).toMatchObject({
+      cardId: card.id,
+      fileName: 'sprint notes.txt',
+      mimeType: 'text/plain',
+      sizeBytes: textFile.length,
+    })
+    expect(created.body.attachment.uploadedBy).toMatchObject({ id: fixture.member.id })
+    expect(created.body.attachment.storedName).toBeUndefined()
+
+    const stored = await prisma.attachment.findUniqueOrThrow({
+      where: { id: created.body.attachment.id },
+      select: { storedName: true },
+    })
+
+    expect(stored.storedName).toMatch(/^[0-9a-f-]{36}\.txt$/)
+    expect(await readFile(join(temporaryUploadDirectory, stored.storedName))).toEqual(textFile)
+    expect(await readdir(temporaryUploadDirectory)).toContain(stored.storedName)
+
+    const listed = await api()
+      .get(`/api/cards/${card.id}/attachments`)
+      .set('authorization', asUser(fixture.viewer))
+
+    expect(listed.status).toBe(200)
+    expect(listed.body.attachments).toHaveLength(1)
+
+    const detail = await api()
+      .get(`/api/cards/${card.id}`)
+      .set('authorization', asUser(fixture.viewer))
+
+    expect(detail.body.card._count.attachments).toBe(1)
+  })
+
+  it('downloads the file under its original name', async () => {
+    const card = await createCard(fixture.todoId, fixture.owner.id, { title: 'Has a file' })
+    const created = await upload(fixture.member, card.id, 'sprint notes.txt', 'text/plain')
+
+    const downloaded = await api()
+      .get(`/api/attachments/${created.body.attachment.id}/download`)
+      .set('authorization', asUser(fixture.viewer))
+      .responseType('blob')
+
+    expect(downloaded.status).toBe(200)
+    expect(downloaded.headers['content-disposition']).toContain('sprint notes.txt')
+    expect(downloaded.headers['content-type']).toContain('text/plain')
+    expect(downloaded.body).toEqual(textFile)
+  })
+
+  it('refuses a file above the size limit', async () => {
+    const card = await createCard(fixture.todoId, fixture.owner.id, { title: 'Has a file' })
+    const oversized = Buffer.alloc(70_000, 0x61)
+
+    const response = await api()
+      .post(`/api/cards/${card.id}/attachments`)
+      .set('authorization', asUser(fixture.member))
+      .attach('file', oversized, { filename: 'huge.txt', contentType: 'text/plain' })
+
+    expect(response.status).toBe(413)
+    expect(response.body.error.code).toBe('PAYLOAD_TOO_LARGE')
+    expect(await prisma.attachment.count()).toBe(0)
+  })
+
+  it('refuses a mime type outside the allowlist', async () => {
+    const card = await createCard(fixture.todoId, fixture.owner.id, { title: 'Has a file' })
+    const response = await upload(fixture.member, card.id, 'tool.exe', 'application/x-msdownload')
+
+    expect(response.status).toBe(400)
+    expect(response.body.error.message).toContain('application/x-msdownload')
+    expect(await prisma.attachment.count()).toBe(0)
+  })
+
+  it('refuses a request without a file', async () => {
+    const card = await createCard(fixture.todoId, fixture.owner.id, { title: 'Has a file' })
+    const response = await api()
+      .post(`/api/cards/${card.id}/attachments`)
+      .set('authorization', asUser(fixture.member))
+
+    expect(response.status).toBe(400)
+    expect(response.body.error.message).toContain('file')
+  })
+
+  it('lets a viewer download but not upload or delete', async () => {
+    const card = await createCard(fixture.todoId, fixture.owner.id, { title: 'Has a file' })
+    const created = await upload(fixture.member, card.id, 'notes.txt', 'text/plain')
+
+    const uploadAttempt = await upload(fixture.viewer, card.id, 'notes.txt', 'text/plain')
+    const deleteAttempt = await api()
+      .delete(`/api/attachments/${created.body.attachment.id}`)
+      .set('authorization', asUser(fixture.viewer))
+
+    expect(uploadAttempt.status).toBe(403)
+    expect(deleteAttempt.status).toBe(403)
+  })
+
+  it('deletes the row and the file from disk', async () => {
+    const card = await createCard(fixture.todoId, fixture.owner.id, { title: 'Has a file' })
+    const created = await upload(fixture.member, card.id, 'notes.txt', 'text/plain')
+    const stored = await prisma.attachment.findUniqueOrThrow({
+      where: { id: created.body.attachment.id },
+      select: { storedName: true },
+    })
+
+    const response = await api()
+      .delete(`/api/attachments/${created.body.attachment.id}`)
+      .set('authorization', asUser(fixture.member))
+
+    expect(response.status).toBe(204)
+    expect(await prisma.attachment.count()).toBe(0)
+    expect(await readdir(temporaryUploadDirectory)).not.toContain(stored.storedName)
+  })
+
+  it('answers 404 for an unknown attachment', async () => {
+    const download = await api()
+      .get('/api/attachments/00000000-0000-4000-8000-000000000000/download')
+      .set('authorization', asUser(fixture.member))
+    const removal = await api()
+      .delete('/api/attachments/00000000-0000-4000-8000-000000000000')
+      .set('authorization', asUser(fixture.member))
+
+    expect(download.status).toBe(404)
+    expect(removal.status).toBe(404)
   })
 })
