@@ -1,0 +1,11 @@
+.rb-shell {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+  background-color: var(--surface-base);
+}
+
+.rb-shell__main {
+  flex: 1;
+  padding: var(--sp-5) var(--sp-4);
+}

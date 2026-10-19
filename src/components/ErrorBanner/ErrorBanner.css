@@ -1,0 +1,17 @@
+.rb-error-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  border: var(--border-thick) solid var(--border-color-error);
+  border-radius: var(--radius-none);
+  background-color: var(--surface-base);
+  padding: var(--sp-3);
+}
+
+.rb-error-banner__message {
+  font-family: var(--font-mono);
+  font-size: var(--text-mono-size);
+  line-height: var(--text-mono-line);
+  color: var(--color-error);
+}

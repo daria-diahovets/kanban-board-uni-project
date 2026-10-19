@@ -1,9 +1,16 @@
+import { QueryClientProvider } from '@tanstack/react-query'
+import { RouterProvider } from 'react-router'
+import { AuthProvider } from './features/auth/AuthProvider'
+import { queryClient } from './lib/queryClient'
+import { router } from './routes/router'
+
 function App() {
   return (
-    <main>
-      <h1>Kanban Board</h1>
-      <p>Project management system</p>
-    </main>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <RouterProvider router={router} />
+      </AuthProvider>
+    </QueryClientProvider>
   )
 }
 
