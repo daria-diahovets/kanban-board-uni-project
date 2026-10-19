@@ -1,0 +1,33 @@
+.rb-auth {
+  display: flex;
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-5) var(--sp-4);
+}
+
+.rb-auth__card {
+  width: 100%;
+  max-width: 440px;
+}
+
+.rb-auth__title {
+  margin-bottom: var(--sp-4);
+  font-family: var(--font-headline);
+  font-size: var(--text-h2-size);
+  line-height: var(--text-h2-line);
+  text-transform: uppercase;
+}
+
+.rb-auth__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.rb-auth__footer {
+  margin-top: var(--sp-4);
+  font-family: var(--font-body);
+  font-size: var(--text-small-size);
+  line-height: var(--text-small-line);
+}
