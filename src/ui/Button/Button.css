@@ -1,0 +1,97 @@
+.rb-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  border: var(--border-thick) solid var(--border-color);
+  border-radius: var(--radius-none);
+  box-shadow: var(--shadow-none);
+  font-family: var(--font-body);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-button);
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.rb-button--sm {
+  min-height: var(--control-height-sm);
+  padding: var(--control-padding-sm);
+  font-size: var(--control-text-sm);
+}
+
+.rb-button--md {
+  min-height: var(--control-height-md);
+  padding: var(--control-padding-md);
+  font-size: var(--control-text-md);
+}
+
+.rb-button--lg {
+  min-height: var(--control-height-lg);
+  padding: var(--control-padding-lg);
+  font-size: var(--control-text-lg);
+}
+
+.rb-button--primary {
+  background-color: var(--surface-inverted);
+  color: var(--content-inverse);
+}
+
+.rb-button--primary:hover {
+  background-color: var(--surface-base);
+  color: var(--content-primary);
+}
+
+.rb-button--secondary {
+  background-color: var(--surface-base);
+  color: var(--content-primary);
+}
+
+.rb-button--secondary:hover {
+  background-color: var(--surface-inverted);
+  color: var(--content-inverse);
+}
+
+.rb-button--destructive {
+  background-color: var(--color-error);
+  color: var(--content-inverse);
+}
+
+.rb-button--destructive:hover {
+  background-color: var(--surface-inverted);
+  color: var(--color-error);
+}
+
+.rb-button--ghost {
+  border: none;
+  background-color: transparent;
+  color: var(--content-primary);
+  text-decoration: underline;
+}
+
+.rb-button--ghost:hover {
+  color: var(--color-link);
+}
+
+.rb-button:active:not(:disabled) {
+  border-width: var(--border-heavy);
+  background-color: var(--surface-inverted);
+  color: var(--content-inverse);
+}
+
+.rb-button--destructive:active:not(:disabled) {
+  color: var(--color-error);
+}
+
+.rb-button--ghost:active:not(:disabled) {
+  border: none;
+  background-color: transparent;
+  color: var(--color-link);
+}
+
+.rb-button:disabled {
+  border: var(--border-thick) solid var(--border-color-disabled);
+  background-color: var(--surface-sunken);
+  color: var(--content-tertiary);
+  cursor: not-allowed;
+}

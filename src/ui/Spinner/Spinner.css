@@ -1,0 +1,35 @@
+.rb-spinner {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-mono-size);
+  text-transform: uppercase;
+}
+
+.rb-spinner__block {
+  box-sizing: border-box;
+  width: var(--box-size);
+  height: var(--box-size);
+  border: var(--border-thick) solid var(--border-color);
+  border-right-color: transparent;
+  border-radius: var(--radius-none);
+  animation: rb-spinner-step 1s steps(4, end) infinite;
+}
+
+.rb-spinner__label {
+  letter-spacing: var(--tracking-label);
+}
+
+@keyframes rb-spinner-step {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rb-spinner__block {
+    animation: none;
+    border-right-color: var(--border-color);
+  }
+}

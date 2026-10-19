@@ -1,0 +1,60 @@
+.rb-modal {
+  width: min(680px, calc(100vw - var(--sp-5)));
+  max-height: calc(100vh - var(--sp-5));
+  border: var(--border-heavy) solid var(--border-color);
+  border-radius: var(--radius-none);
+  box-shadow: var(--shadow-none);
+  background-color: var(--surface-base);
+  padding: 0;
+  color: var(--content-primary);
+}
+
+.rb-modal::backdrop {
+  background-color: var(--overlay-backdrop);
+}
+
+.rb-modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  border-bottom: var(--border-thick) solid var(--border-color);
+  padding: var(--sp-4);
+}
+
+.rb-modal__title {
+  font-family: var(--font-headline);
+  font-size: var(--text-h3-size);
+  line-height: var(--text-h3-line);
+  text-transform: uppercase;
+}
+
+.rb-modal__close {
+  border: none;
+  background-color: transparent;
+  padding: 0;
+  font-family: var(--font-body);
+  font-size: var(--text-small-size);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-button);
+  text-transform: uppercase;
+  text-decoration: underline;
+  color: var(--content-primary);
+  cursor: pointer;
+}
+
+.rb-modal__close:hover {
+  color: var(--color-link);
+}
+
+.rb-modal__body {
+  padding: var(--sp-4);
+}
+
+.rb-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--sp-2);
+  border-top: var(--border-thick) solid var(--border-color);
+  padding: var(--sp-4);
+}

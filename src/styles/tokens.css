@@ -60,6 +60,7 @@
   --sp-8: 120px;
 
   --border-thin: 1px;
+  --border-chip: 2px;
   --border-thick: 3px;
   --border-heavy: 5px;
 
@@ -80,6 +81,8 @@
   --input-padding: 10px 12px;
   --box-size: 20px;
   --radio-dot-size: 10px;
+
+  --list-item-padding: 12px 0;
 
   --chip-padding: 4px 12px;
   --chip-text: 10px;

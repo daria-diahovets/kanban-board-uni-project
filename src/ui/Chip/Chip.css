@@ -1,0 +1,57 @@
+.rb-chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-none);
+  box-shadow: var(--shadow-none);
+  background-color: var(--surface-base);
+  font-family: var(--font-body);
+  letter-spacing: var(--tracking-chip);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.rb-chip--filter {
+  border: var(--border-chip) solid var(--border-color);
+  padding: var(--chip-padding);
+  font-size: var(--chip-text);
+  color: var(--content-primary);
+  cursor: pointer;
+}
+
+.rb-chip--filter:hover {
+  background-color: var(--surface-inverted);
+  color: var(--content-inverse);
+}
+
+.rb-chip--active {
+  background-color: var(--surface-inverted);
+  color: var(--content-inverse);
+}
+
+.rb-chip--status {
+  border: var(--border-chip) solid var(--border-color);
+  padding: var(--status-chip-padding);
+  font-size: var(--status-chip-text);
+  font-weight: var(--weight-semibold);
+  color: var(--content-primary);
+}
+
+.rb-chip--success {
+  border-color: var(--color-success);
+  color: var(--color-success);
+}
+
+.rb-chip--warning {
+  border-color: var(--color-warning);
+  color: var(--color-warning);
+}
+
+.rb-chip--error {
+  border-color: var(--color-error);
+  color: var(--color-error);
+}
+
+.rb-chip--info {
+  border-color: var(--color-info);
+  color: var(--color-info);
+}

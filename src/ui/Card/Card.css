@@ -1,0 +1,14 @@
+.rb-card {
+  border-radius: var(--radius-none);
+  box-shadow: var(--shadow-none);
+  background-color: var(--surface-base);
+  padding: var(--sp-4);
+}
+
+.rb-card--default {
+  border: var(--border-thick) solid var(--border-color);
+}
+
+.rb-card--elevated {
+  border: var(--border-heavy) solid var(--border-color);
+}

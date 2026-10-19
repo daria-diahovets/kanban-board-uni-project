@@ -1,0 +1,56 @@
+.rb-radio {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-family: var(--font-body);
+  font-size: var(--text-body-size);
+  cursor: pointer;
+}
+
+.rb-radio--disabled {
+  color: var(--content-tertiary);
+  cursor: not-allowed;
+}
+
+.rb-radio__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.rb-radio__dot {
+  position: relative;
+  box-sizing: border-box;
+  flex: none;
+  width: var(--box-size);
+  height: var(--box-size);
+  border: var(--border-thick) solid var(--border-color);
+  border-radius: 50%;
+  background-color: var(--surface-base);
+}
+
+.rb-radio__input:checked + .rb-radio__dot::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--radio-dot-size);
+  height: var(--radio-dot-size);
+  border-radius: 50%;
+  background-color: var(--surface-inverted);
+  transform: translate(-50%, -50%);
+}
+
+.rb-radio__input:focus-visible + .rb-radio__dot {
+  border-width: var(--border-heavy);
+}
+
+.rb-radio__input:disabled + .rb-radio__dot {
+  border-color: var(--border-color-disabled);
+}

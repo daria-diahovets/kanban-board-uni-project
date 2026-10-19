@@ -1,0 +1,58 @@
+.rb-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.rb-field__label {
+  margin-bottom: var(--sp-1);
+  font-family: var(--font-headline);
+  font-size: var(--text-small-size);
+  font-weight: var(--weight-regular);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--content-primary);
+}
+
+.rb-field__control {
+  border: var(--border-thick) solid var(--border-color);
+  border-radius: var(--radius-none);
+  box-shadow: var(--shadow-none);
+  background-color: var(--surface-sunken);
+  padding: var(--input-padding);
+  font-family: var(--font-mono);
+  font-size: var(--text-mono-size);
+  line-height: var(--text-mono-line);
+  color: var(--content-primary);
+}
+
+.rb-field__control:hover:not(:disabled) {
+  background-color: var(--surface-sunken-hover);
+}
+
+.rb-field__control:focus {
+  border-width: var(--border-heavy);
+  outline: none;
+}
+
+.rb-field__control--error {
+  border-color: var(--border-color-error);
+}
+
+.rb-field__control:disabled {
+  border-color: var(--border-color-disabled);
+  background-color: var(--surface-disabled);
+  color: var(--content-tertiary);
+  cursor: not-allowed;
+}
+
+.rb-field__message {
+  margin-top: var(--sp-1);
+  font-family: var(--font-body);
+  font-size: var(--text-tiny-size);
+  line-height: var(--text-tiny-line);
+  color: var(--content-secondary);
+}
+
+.rb-field__message--error {
+  color: var(--color-error);
+}

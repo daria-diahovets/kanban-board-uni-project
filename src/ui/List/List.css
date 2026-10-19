@@ -1,0 +1,31 @@
+.rb-list {
+  margin: 0;
+  background-color: transparent;
+  padding: 0;
+  list-style: none;
+}
+
+.rb-list__item {
+  border-bottom: var(--border-thick) solid var(--border-color);
+  padding: var(--list-item-padding);
+  font-family: var(--font-body);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+}
+
+.rb-list__item:last-child {
+  border-bottom: none;
+}
+
+.rb-list__item:hover {
+  text-decoration: underline;
+}
+
+.rb-list__item--selected {
+  background-color: var(--surface-inverted);
+  color: var(--content-inverse);
+  padding-right: var(--sp-3);
+  padding-left: var(--sp-3);
+  margin-right: calc(-1 * var(--sp-3));
+  margin-left: calc(-1 * var(--sp-3));
+}
