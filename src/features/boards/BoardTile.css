@@ -1,0 +1,51 @@
+.rb-board-tile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.rb-board-tile__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-2);
+}
+
+.rb-board-tile__title {
+  font-family: var(--font-headline);
+  font-size: var(--text-h4-size);
+  line-height: var(--text-h4-line);
+  text-transform: uppercase;
+}
+
+.rb-board-tile__description {
+  font-family: var(--font-body);
+  font-size: var(--text-small-size);
+  line-height: var(--text-small-line);
+}
+
+.rb-board-tile__facts {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--sp-1) var(--sp-3);
+}
+
+.rb-board-tile__facts dt {
+  font-family: var(--font-headline);
+  font-size: var(--text-tiny-size);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+.rb-board-tile__facts dd {
+  font-family: var(--font-mono);
+  font-size: var(--text-small-size);
+}
+
+.rb-board-tile__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  border-top: var(--border-thick) solid var(--border-color);
+  padding-top: var(--sp-3);
+}

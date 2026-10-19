@@ -1,0 +1,59 @@
+.rb-boards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.rb-boards__heading {
+  font-family: var(--font-headline);
+  font-size: var(--text-h2-size);
+  line-height: var(--text-h2-line);
+  text-transform: uppercase;
+}
+
+.rb-boards__subheading {
+  margin-bottom: var(--sp-3);
+  font-family: var(--font-headline);
+  font-size: var(--text-h3-size);
+  line-height: var(--text-h3-line);
+  text-transform: uppercase;
+}
+
+.rb-boards__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--sp-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rb-boards__archived {
+  border-top: var(--border-heavy) solid var(--border-color);
+  padding-top: var(--sp-4);
+}
+
+.rb-boards__empty {
+  font-family: var(--font-headline);
+  font-size: var(--text-h3-size);
+  line-height: var(--text-h3-line);
+  text-transform: uppercase;
+}
+
+.rb-boards__state {
+  display: flex;
+  justify-content: center;
+  padding: var(--sp-5);
+}
+
+.rb-boards__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.rb-boards__warning {
+  font-family: var(--font-body);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+}
