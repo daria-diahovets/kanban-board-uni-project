@@ -4,11 +4,13 @@ import { StatusChip } from '../../ui/Chip/Chip'
 import { Spinner } from '../../ui/Spinner/Spinner'
 import { BoardCanvas } from './BoardCanvas'
 import { useBoard } from './useBoard'
+import { useBoardRealtime } from './useBoardRealtime'
 import './BoardPage.css'
 
 export function BoardPage() {
   const { boardId } = useParams<{ boardId: string }>()
   const query = useBoard(boardId ?? '')
+  const realtimeStatus = useBoardRealtime(boardId ?? '')
 
   if (query.isPending) {
     return (
@@ -44,6 +46,10 @@ export function BoardPage() {
           <div className="rb-board__chips">
             <StatusChip>{viewerRole}</StatusChip>
             {board.isArchived ? <StatusChip tone="warning">Archived</StatusChip> : null}
+            {realtimeStatus === 'joined' ? <StatusChip tone="success">Live</StatusChip> : null}
+            {realtimeStatus === 'refused' ? (
+              <StatusChip tone="error">No live updates</StatusChip>
+            ) : null}
           </div>
         </div>
         {board.description ? <p className="rb-board__description">{board.description}</p> : null}

@@ -8,6 +8,7 @@ import {
   getAuthToken,
   setAuthToken,
 } from '../../lib/apiClient'
+import { disconnectSocket } from '../../lib/socket'
 import type { AuthResponse, AuthenticatedUser } from '../../types/api'
 import { AuthContext } from './authContext'
 import type { AuthStatus, SignInInput, SignUpInput } from './authContext'
@@ -60,6 +61,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     async (path: string, body: SignInInput | SignUpInput) => {
       const payload = await apiClient.post<AuthResponse>(path, body)
 
+      disconnectSocket()
       queryClient.clear()
       setAuthToken(payload.token)
       setUser(payload.user)
@@ -75,6 +77,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       signIn: (input: SignInInput) => authenticate('/auth/login', input),
       signUp: (input: SignUpInput) => authenticate('/auth/register', input),
       signOut: () => {
+        disconnectSocket()
         clearAuthToken()
         queryClient.clear()
         setUser(null)
