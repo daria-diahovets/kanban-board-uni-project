@@ -1,4 +1,5 @@
-import type { BoardColumn } from '../../types/api'
+import type { BoardCard, BoardColumn } from '../../types/api'
+import { positionBetween } from '../../lib/position'
 import type { DragTarget } from './dragIds'
 
 export type CardMovePlan = {
@@ -115,4 +116,70 @@ export function planColumnMove(
     prevColumnId: remaining[targetIndex - 1]?.id ?? null,
     nextColumnId: remaining[targetIndex]?.id ?? null,
   }
+}
+
+export function applyCardMove(columns: BoardColumn[], plan: CardMovePlan): BoardColumn[] {
+  const moved = columns.flatMap((column) => column.cards).find((card) => card.id === plan.cardId)
+
+  if (!moved) {
+    return columns
+  }
+
+  const target = columns.find((column) => column.id === plan.targetColumnId)
+
+  if (!target) {
+    return columns
+  }
+
+  const remaining = target.cards.filter((card) => card.id !== plan.cardId)
+  const position = positionBetween(
+    remaining[plan.targetIndex - 1]?.position ?? null,
+    remaining[plan.targetIndex]?.position ?? null,
+  )
+  const relocated: BoardCard = { ...moved, columnId: plan.targetColumnId, position }
+  const changesColumn = plan.sourceColumnId !== plan.targetColumnId
+  const countedCard = changesColumn && !moved.isArchived
+
+  return columns.map((column) => {
+    const withoutCard = column.cards.filter((card) => card.id !== plan.cardId)
+
+    if (column.id === plan.targetColumnId) {
+      const cards = [...withoutCard]
+      cards.splice(plan.targetIndex, 0, relocated)
+
+      return {
+        ...column,
+        cards,
+        activeCardCount: countedCard ? column.activeCardCount + 1 : column.activeCardCount,
+      }
+    }
+
+    if (column.id === plan.sourceColumnId) {
+      return {
+        ...column,
+        cards: withoutCard,
+        activeCardCount: countedCard ? column.activeCardCount - 1 : column.activeCardCount,
+      }
+    }
+
+    return column
+  })
+}
+
+export function applyColumnMove(columns: BoardColumn[], plan: ColumnMovePlan): BoardColumn[] {
+  const moved = columns.find((column) => column.id === plan.columnId)
+
+  if (!moved) {
+    return columns
+  }
+
+  const remaining = columns.filter((column) => column.id !== plan.columnId)
+  const position = positionBetween(
+    remaining[plan.targetIndex - 1]?.position ?? null,
+    remaining[plan.targetIndex]?.position ?? null,
+  )
+  const reordered = [...remaining]
+  reordered.splice(plan.targetIndex, 0, { ...moved, position })
+
+  return reordered
 }

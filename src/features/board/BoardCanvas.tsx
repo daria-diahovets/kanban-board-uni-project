@@ -79,11 +79,7 @@ export function BoardCanvas({
       const plan = overColumnId ? planColumnMove(columns, active.id, overColumnId) : null
 
       if (plan) {
-        moveColumn.mutate({
-          columnId: plan.columnId,
-          prevColumnId: plan.prevColumnId,
-          nextColumnId: plan.nextColumnId,
-        })
+        moveColumn.mutate(plan)
       }
 
       return
@@ -92,12 +88,7 @@ export function BoardCanvas({
     const plan = planCardMove(columns, active.id, over)
 
     if (plan) {
-      moveCard.mutate({
-        cardId: plan.cardId,
-        targetColumnId: plan.targetColumnId,
-        prevCardId: plan.prevCardId,
-        nextCardId: plan.nextCardId,
-      })
+      moveCard.mutate(plan)
     }
   }
 
