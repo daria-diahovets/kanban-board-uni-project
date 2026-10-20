@@ -1,0 +1,42 @@
+.rb-lane {
+  display: flex;
+  width: 320px;
+  min-width: 320px;
+  flex-direction: column;
+  gap: var(--sp-3);
+  background-color: var(--surface-sunken);
+}
+
+.rb-lane__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  border-bottom: var(--border-thick) solid var(--border-color);
+  padding-bottom: var(--sp-2);
+}
+
+.rb-lane__title {
+  font-family: var(--font-headline);
+  font-size: var(--text-h4-size);
+  line-height: var(--text-h4-line);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+.rb-lane__cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rb-lane__empty {
+  font-family: var(--font-headline);
+  font-size: var(--text-small-size);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--content-secondary);
+}

@@ -2,6 +2,7 @@ import { createBrowserRouter } from 'react-router'
 import { AppShell } from '../components/AppShell/AppShell'
 import { LoginPage } from '../features/auth/LoginPage'
 import { RegisterPage } from '../features/auth/RegisterPage'
+import { BoardPage } from '../features/board/BoardPage'
 import { BoardListPage } from '../features/boards/BoardListPage'
 import { GuestRoute } from './GuestRoute'
 import { NotFoundPage } from './NotFoundPage'
@@ -21,7 +22,10 @@ export const router = createBrowserRouter([
     children: [
       {
         element: <AppShell />,
-        children: [{ index: true, element: <BoardListPage /> }],
+        children: [
+          { index: true, element: <BoardListPage /> },
+          { path: 'boards/:boardId', element: <BoardPage /> },
+        ],
       },
     ],
   },

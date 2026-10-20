@@ -1,0 +1,58 @@
+.rb-card-tile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-3);
+}
+
+.rb-card-tile:hover {
+  background-color: var(--surface-inverted);
+  color: var(--content-inverse);
+}
+
+.rb-card-tile__labels,
+.rb-card-tile__assignees {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rb-card-tile__title {
+  font-family: var(--font-body);
+  font-size: var(--text-body-size);
+  font-weight: var(--weight-semibold);
+  line-height: var(--text-body-line);
+  text-transform: none;
+}
+
+.rb-card-tile__state {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-1);
+}
+
+.rb-card-tile__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  border-top: var(--border-thin) solid currentcolor;
+  padding-top: var(--sp-2);
+}
+
+.rb-card-tile__assignee {
+  font-family: var(--font-mono);
+  font-size: var(--text-small-size);
+  letter-spacing: var(--tracking-label);
+}
+
+.rb-card-tile__counts {
+  font-family: var(--font-mono);
+  font-size: var(--text-tiny-size);
+  line-height: var(--text-tiny-line);
+  text-transform: uppercase;
+  text-align: right;
+}
