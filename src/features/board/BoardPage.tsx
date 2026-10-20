@@ -31,7 +31,7 @@ export function BoardPage() {
   const cardTotal = board.columns.reduce((total, column) => total + column.activeCardCount, 0)
   const editable = !board.isArchived
   const cardsDraggable = editable && (viewerRole === 'OWNER' || viewerRole === 'MEMBER')
-  const columnsDraggable = editable && viewerRole === 'OWNER'
+  const columnsManageable = editable && viewerRole === 'OWNER'
 
   return (
     <div className="rb-board">
@@ -63,7 +63,7 @@ export function BoardPage() {
         boardId={board.id}
         columns={board.columns}
         cardsDraggable={cardsDraggable}
-        columnsDraggable={columnsDraggable}
+        columnsManageable={columnsManageable}
       />
     </div>
   )

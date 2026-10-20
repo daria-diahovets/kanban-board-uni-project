@@ -1,0 +1,21 @@
+.rb-column-form {
+  display: flex;
+  width: 320px;
+  min-width: 320px;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.rb-column-form__heading {
+  font-family: var(--font-headline);
+  font-size: var(--text-h4-size);
+  line-height: var(--text-h4-line);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+.rb-column-form__fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}

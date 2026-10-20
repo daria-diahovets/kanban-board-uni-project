@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { Button } from '../../ui/Button/Button'
 import { classNames } from '../../lib/classNames'
@@ -10,12 +11,14 @@ type SortableColumnLaneProps = {
   column: BoardColumn
   columnDraggable: boolean
   cardsDraggable: boolean
+  controls?: ReactNode
 }
 
 export function SortableColumnLane({
   column,
   columnDraggable,
   cardsDraggable,
+  controls,
 }: SortableColumnLaneProps) {
   const {
     attributes,
@@ -46,18 +49,21 @@ export function SortableColumnLane({
         <ColumnLane
           column={column}
           headerActions={
-            columnDraggable ? (
-              <Button
-                ref={setActivatorNodeRef}
-                variant="secondary"
-                size="sm"
-                aria-label={`Move column ${column.title}`}
-                {...attributes}
-                {...listeners}
-              >
-                Move
-              </Button>
-            ) : null
+            <>
+              {columnDraggable ? (
+                <Button
+                  ref={setActivatorNodeRef}
+                  variant="secondary"
+                  size="sm"
+                  aria-label={`Move column ${column.title}`}
+                  {...attributes}
+                  {...listeners}
+                >
+                  Move
+                </Button>
+              ) : null}
+              {controls}
+            </>
           }
           renderCard={(card) => <SortableCardTile card={card} draggable={cardsDraggable} />}
         />

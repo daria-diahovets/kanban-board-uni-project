@@ -17,7 +17,9 @@ import {
 import { ErrorBanner } from '../../components/ErrorBanner/ErrorBanner'
 import type { BoardColumn } from '../../types/api'
 import { CardTile } from './CardTile'
+import { ColumnControls } from './ColumnControls'
 import { ColumnLane } from './ColumnLane'
+import { CreateColumnForm } from './CreateColumnForm'
 import { SortableColumnLane } from './SortableColumnLane'
 import { columnIdOfCard, planCardMove, planColumnMove } from './boardReorder'
 import { columnDragId, parseDragId } from './dragIds'
@@ -29,7 +31,7 @@ type BoardCanvasProps = {
   boardId: string
   columns: BoardColumn[]
   cardsDraggable: boolean
-  columnsDraggable: boolean
+  columnsManageable: boolean
 }
 
 const POINTER_ACTIVATION_DISTANCE = 5
@@ -38,7 +40,7 @@ export function BoardCanvas({
   boardId,
   columns,
   cardsDraggable,
-  columnsDraggable,
+  columnsManageable,
 }: BoardCanvasProps) {
   const moveCard = useMoveCard(boardId)
   const moveColumn = useMoveColumn(boardId)
@@ -100,7 +102,12 @@ export function BoardCanvas({
     dragged?.type === 'column' ? columns.find((column) => column.id === dragged.id) : undefined
 
   if (columns.length === 0) {
-    return <p className="rb-canvas__empty">No columns yet</p>
+    return (
+      <div className="rb-canvas">
+        <p className="rb-canvas__empty">No columns yet</p>
+        {columnsManageable ? <CreateColumnForm boardId={boardId} /> : null}
+      </div>
+    )
   }
 
   return (
@@ -123,11 +130,19 @@ export function BoardCanvas({
               <li key={column.id}>
                 <SortableColumnLane
                   column={column}
-                  columnDraggable={columnsDraggable}
+                  columnDraggable={columnsManageable}
                   cardsDraggable={cardsDraggable}
+                  controls={
+                    columnsManageable ? <ColumnControls boardId={boardId} column={column} /> : null
+                  }
                 />
               </li>
             ))}
+            {columnsManageable ? (
+              <li>
+                <CreateColumnForm boardId={boardId} />
+              </li>
+            ) : null}
           </ul>
         </SortableContext>
 
