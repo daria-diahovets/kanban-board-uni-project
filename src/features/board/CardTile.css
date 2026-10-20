@@ -5,6 +5,10 @@
   padding: var(--sp-3);
 }
 
+.rb-card-tile--dragging {
+  border-width: var(--border-heavy);
+}
+
 .rb-card-tile:hover {
   background-color: var(--surface-inverted);
   color: var(--content-inverse);

@@ -2,7 +2,7 @@ import { Link, useParams } from 'react-router'
 import { ErrorBanner } from '../../components/ErrorBanner/ErrorBanner'
 import { StatusChip } from '../../ui/Chip/Chip'
 import { Spinner } from '../../ui/Spinner/Spinner'
-import { ColumnLane } from './ColumnLane'
+import { BoardCanvas } from './BoardCanvas'
 import { useBoard } from './useBoard'
 import './BoardPage.css'
 
@@ -29,6 +29,9 @@ export function BoardPage() {
 
   const { board, viewerRole } = query.data
   const cardTotal = board.columns.reduce((total, column) => total + column.activeCardCount, 0)
+  const editable = !board.isArchived
+  const cardsDraggable = editable && (viewerRole === 'OWNER' || viewerRole === 'MEMBER')
+  const columnsDraggable = editable && viewerRole === 'OWNER'
 
   return (
     <div className="rb-board">
@@ -56,17 +59,12 @@ export function BoardPage() {
         </dl>
       </header>
 
-      {board.columns.length > 0 ? (
-        <ul className="rb-board__lanes">
-          {board.columns.map((column) => (
-            <li key={column.id}>
-              <ColumnLane column={column} />
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="rb-board__empty">No columns yet</p>
-      )}
+      <BoardCanvas
+        boardId={board.id}
+        columns={board.columns}
+        cardsDraggable={cardsDraggable}
+        columnsDraggable={columnsDraggable}
+      />
     </div>
   )
 }

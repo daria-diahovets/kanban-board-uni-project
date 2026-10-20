@@ -16,6 +16,17 @@
   padding-bottom: var(--sp-2);
 }
 
+.rb-lane--dragging {
+  outline: var(--border-thick) solid var(--border-color);
+  outline-offset: var(--sp-1);
+}
+
+.rb-lane__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
 .rb-lane__title {
   font-family: var(--font-headline);
   font-size: var(--text-h4-size);

@@ -68,23 +68,6 @@
   font-size: var(--text-small-size);
 }
 
-.rb-board__lanes {
-  display: flex;
-  gap: var(--sp-3);
-  align-items: flex-start;
-  margin: 0;
-  padding: 0 0 var(--sp-3);
-  overflow-x: auto;
-  list-style: none;
-}
-
-.rb-board__empty {
-  font-family: var(--font-headline);
-  font-size: var(--text-h3-size);
-  line-height: var(--text-h3-line);
-  text-transform: uppercase;
-}
-
 .rb-board__state {
   display: flex;
   flex-direction: column;
