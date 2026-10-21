@@ -4,6 +4,7 @@ import { LoginPage } from '../features/auth/LoginPage'
 import { RegisterPage } from '../features/auth/RegisterPage'
 import { BoardPage } from '../features/board/BoardPage'
 import { BoardListPage } from '../features/boards/BoardListPage'
+import { PublicBoardPage } from '../features/guest/PublicBoardPage'
 import { GuestRoute } from './GuestRoute'
 import { NotFoundPage } from './NotFoundPage'
 import { ProtectedRoute } from './ProtectedRoute'
@@ -29,5 +30,6 @@ export const router = createBrowserRouter([
       },
     ],
   },
+  { path: '/public/boards/:token', element: <PublicBoardPage /> },
   { path: '*', element: <NotFoundPage /> },
 ])

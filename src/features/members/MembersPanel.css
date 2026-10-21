@@ -1,0 +1,84 @@
+.rb-members {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.rb-members__list {
+  width: 100%;
+}
+
+.rb-members__item {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2) var(--sp-3);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.rb-members__item:hover {
+  text-decoration: none;
+}
+
+.rb-members__identity {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+}
+
+.rb-members__name {
+  font-family: var(--font-body);
+  font-size: var(--text-body-size);
+  font-weight: var(--weight-semibold);
+}
+
+.rb-members__email {
+  font-family: var(--font-mono);
+  font-size: var(--text-small-size);
+}
+
+.rb-members__meta {
+  font-family: var(--font-body);
+  font-size: var(--text-tiny-size);
+  line-height: var(--text-tiny-line);
+  color: var(--content-secondary);
+}
+
+.rb-members__controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2) var(--sp-3);
+  align-items: center;
+}
+
+.rb-members__roles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+}
+
+.rb-members__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  align-items: flex-start;
+  border-top: var(--border-thick) solid var(--border-color);
+  padding-top: var(--sp-3);
+}
+
+.rb-members__form > .rb-field {
+  width: 100%;
+}
+
+.rb-members__share {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  align-items: flex-start;
+}
+
+.rb-members__link {
+  font-family: var(--font-mono);
+  font-size: var(--text-small-size);
+  overflow-wrap: anywhere;
+}

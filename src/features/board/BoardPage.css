@@ -75,3 +75,13 @@
   gap: var(--sp-3);
   padding: var(--sp-5);
 }
+
+.rb-board__panel-heading {
+  margin-top: var(--sp-4);
+  margin-bottom: var(--sp-2);
+  font-family: var(--font-headline);
+  font-size: var(--text-h4-size);
+  line-height: var(--text-h4-line);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}

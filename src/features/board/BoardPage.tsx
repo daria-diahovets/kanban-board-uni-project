@@ -1,9 +1,13 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { ErrorBanner } from '../../components/ErrorBanner/ErrorBanner'
+import { Button } from '../../ui/Button/Button'
 import { StatusChip } from '../../ui/Chip/Chip'
+import { Modal } from '../../ui/Modal/Modal'
 import { Spinner } from '../../ui/Spinner/Spinner'
 import { FilterBar } from '../filters/FilterBar'
+import { MembersPanel } from '../members/MembersPanel'
+import { ShareLinkPanel } from '../members/ShareLinkPanel'
 import { useBoardFilters, useFilterStore } from '../filters/filterStore'
 import { BoardCanvas } from './BoardCanvas'
 import { useBoard } from './useBoard'
@@ -16,6 +20,7 @@ export function BoardPage() {
   const filters = useBoardFilters(boardId ?? '')
   const query = useBoard(boardId ?? '', filters)
   const realtimeStatus = useBoardRealtime(boardId ?? '')
+  const [membersOpen, setMembersOpen] = useState(false)
 
   useEffect(() => {
     if (boardId) {
@@ -75,6 +80,9 @@ export function BoardPage() {
           <dt>Cards</dt>
           <dd>{cardTotal}</dd>
         </dl>
+        <Button variant="secondary" size="sm" onClick={() => setMembersOpen(true)}>
+          Members and sharing
+        </Button>
       </header>
 
       <FilterBar members={board.members} labels={board.labels} matchingCards={matchingCards} />
@@ -87,6 +95,22 @@ export function BoardPage() {
         columnsManageable={columnsManageable}
         isBoardOwner={viewerRole === 'OWNER'}
       />
+
+      {membersOpen ? (
+        <Modal open title="Members and sharing" onClose={() => setMembersOpen(false)}>
+          <MembersPanel
+            boardId={board.id}
+            ownerId={board.owner.id}
+            manageable={viewerRole === 'OWNER'}
+          />
+          {viewerRole === 'OWNER' ? (
+            <>
+              <h4 className="rb-board__panel-heading">Share link</h4>
+              <ShareLinkPanel boardId={board.id} />
+            </>
+          ) : null}
+        </Modal>
+      ) : null}
     </div>
   )
 }
