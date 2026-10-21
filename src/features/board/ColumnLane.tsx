@@ -11,6 +11,7 @@ type ColumnLaneProps = {
   column: BoardColumn
   headerActions?: ReactNode
   renderCard?: (card: BoardCard) => ReactNode
+  footer?: ReactNode
   className?: string
 }
 
@@ -28,7 +29,13 @@ function capacity(column: BoardColumn): { text: string; tone: ChipTone } {
   return { text, tone: column.activeCardCount === column.wipLimit ? 'warning' : 'default' }
 }
 
-export function ColumnLane({ column, headerActions, renderCard, className }: ColumnLaneProps) {
+export function ColumnLane({
+  column,
+  headerActions,
+  renderCard,
+  footer,
+  className,
+}: ColumnLaneProps) {
   const limit = capacity(column)
   const renderOne = renderCard ?? ((card: BoardCard) => <CardTile card={card} />)
 
@@ -51,6 +58,8 @@ export function ColumnLane({ column, headerActions, renderCard, className }: Col
       ) : (
         <p className="rb-lane__empty">No cards</p>
       )}
+
+      {footer}
     </Card>
   )
 }

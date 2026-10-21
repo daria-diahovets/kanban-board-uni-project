@@ -7,10 +7,11 @@ import './CardTile.css'
 
 type CardTileProps = {
   card: BoardCard
+  onOpen?: (cardId: string) => void
   className?: string
 }
 
-export function CardTile({ card, className }: CardTileProps) {
+export function CardTile({ card, onOpen, className }: CardTileProps) {
   const dueState = dueStateOf(card.dueDate)
   const counts = cardCountSummary(card._count)
 
@@ -26,7 +27,21 @@ export function CardTile({ card, className }: CardTileProps) {
         </ul>
       ) : null}
 
-      <h3 className="rb-card-tile__title">{card.title}</h3>
+      <h3 className="rb-card-tile__title">
+        {onOpen ? (
+          <button
+            type="button"
+            className="rb-card-tile__open"
+            onClick={() => onOpen(card.id)}
+            onPointerDown={(event) => event.stopPropagation()}
+            onKeyDown={(event) => event.stopPropagation()}
+          >
+            {card.title}
+          </button>
+        ) : (
+          card.title
+        )}
+      </h3>
 
       {dueState || card.isArchived ? (
         <div className="rb-card-tile__state">

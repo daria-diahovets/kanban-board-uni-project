@@ -32,7 +32,7 @@ export function BoardPage() {
   const { board, viewerRole } = query.data
   const cardTotal = board.columns.reduce((total, column) => total + column.activeCardCount, 0)
   const editable = !board.isArchived
-  const cardsDraggable = editable && (viewerRole === 'OWNER' || viewerRole === 'MEMBER')
+  const cardsEditable = editable && (viewerRole === 'OWNER' || viewerRole === 'MEMBER')
   const columnsManageable = editable && viewerRole === 'OWNER'
 
   return (
@@ -68,8 +68,10 @@ export function BoardPage() {
       <BoardCanvas
         boardId={board.id}
         columns={board.columns}
-        cardsDraggable={cardsDraggable}
+        members={board.members}
+        cardsEditable={cardsEditable}
         columnsManageable={columnsManageable}
+        isBoardOwner={viewerRole === 'OWNER'}
       />
     </div>
   )

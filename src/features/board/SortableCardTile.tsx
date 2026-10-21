@@ -7,9 +7,10 @@ import { cardDragId } from './dragIds'
 type SortableCardTileProps = {
   card: BoardCard
   draggable: boolean
+  onOpen?: (cardId: string) => void
 }
 
-export function SortableCardTile({ card, draggable }: SortableCardTileProps) {
+export function SortableCardTile({ card, draggable, onOpen }: SortableCardTileProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: cardDragId(card.id),
     disabled: { draggable: !draggable, droppable: false },
@@ -30,7 +31,7 @@ export function SortableCardTile({ card, draggable }: SortableCardTileProps) {
       {...attributes}
       {...listeners}
     >
-      <CardTile card={card} />
+      <CardTile card={card} onOpen={onOpen} />
     </div>
   )
 }

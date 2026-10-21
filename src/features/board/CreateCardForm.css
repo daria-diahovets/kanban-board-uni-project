@@ -1,0 +1,22 @@
+.rb-card-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  border-top: var(--border-thick) solid var(--border-color);
+  padding-top: var(--sp-3);
+}
+
+.rb-card-form__assignees {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  border: var(--border-thin) solid var(--border-color);
+  border-radius: var(--radius-none);
+  padding: var(--sp-2);
+}
+
+.rb-card-form__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+}

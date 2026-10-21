@@ -15,10 +15,12 @@ import {
   sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable'
 import { ErrorBanner } from '../../components/ErrorBanner/ErrorBanner'
-import type { BoardColumn } from '../../types/api'
+import { CardModal } from '../card/CardModal'
+import type { BoardColumn, BoardMembership } from '../../types/api'
 import { CardTile } from './CardTile'
 import { ColumnControls } from './ColumnControls'
 import { ColumnLane } from './ColumnLane'
+import { CreateCardForm } from './CreateCardForm'
 import { CreateColumnForm } from './CreateColumnForm'
 import { SortableColumnLane } from './SortableColumnLane'
 import { columnIdOfCard, planCardMove, planColumnMove } from './boardReorder'
@@ -30,8 +32,10 @@ import './BoardCanvas.css'
 type BoardCanvasProps = {
   boardId: string
   columns: BoardColumn[]
-  cardsDraggable: boolean
+  members: BoardMembership[]
+  cardsEditable: boolean
   columnsManageable: boolean
+  isBoardOwner: boolean
 }
 
 const POINTER_ACTIVATION_DISTANCE = 5
@@ -39,12 +43,15 @@ const POINTER_ACTIVATION_DISTANCE = 5
 export function BoardCanvas({
   boardId,
   columns,
-  cardsDraggable,
+  members,
+  cardsEditable,
   columnsManageable,
+  isBoardOwner,
 }: BoardCanvasProps) {
   const moveCard = useMoveCard(boardId)
   const moveColumn = useMoveColumn(boardId)
   const [dragged, setDragged] = useState<DragTarget | null>(null)
+  const [openCardId, setOpenCardId] = useState<string | null>(null)
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -131,9 +138,20 @@ export function BoardCanvas({
                 <SortableColumnLane
                   column={column}
                   columnDraggable={columnsManageable}
-                  cardsDraggable={cardsDraggable}
+                  cardsDraggable={cardsEditable}
+                  onOpenCard={setOpenCardId}
                   controls={
                     columnsManageable ? <ColumnControls boardId={boardId} column={column} /> : null
+                  }
+                  footer={
+                    cardsEditable ? (
+                      <CreateCardForm
+                        boardId={boardId}
+                        columnId={column.id}
+                        columnTitle={column.title}
+                        members={members}
+                      />
+                    ) : null
                   }
                 />
               </li>
@@ -153,6 +171,17 @@ export function BoardCanvas({
           ) : null}
         </DragOverlay>
       </DndContext>
+
+      {openCardId ? (
+        <CardModal
+          boardId={boardId}
+          cardId={openCardId}
+          members={members}
+          editable={cardsEditable}
+          isBoardOwner={isBoardOwner}
+          onClose={() => setOpenCardId(null)}
+        />
+      ) : null}
     </div>
   )
 }

@@ -1,0 +1,4 @@
+.rb-textarea {
+  resize: vertical;
+  min-height: calc(var(--control-height-lg) + var(--sp-4));
+}
