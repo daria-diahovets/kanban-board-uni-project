@@ -1,14 +1,21 @@
 import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '../../lib/apiClient'
-import type { BoardDetailResponse } from '../../types/api'
+import type { BoardDetailResponse, BoardFilters } from '../../types/api'
 
-export function boardQueryKey(boardId: string) {
+export function boardQueryScope(boardId: string) {
   return ['board', boardId] as const
 }
 
-export function useBoard(boardId: string) {
+export function boardQueryKey(boardId: string, filters: BoardFilters = {}) {
+  return [...boardQueryScope(boardId), filters] as const
+}
+
+export function useBoard(boardId: string, filters: BoardFilters = {}) {
   return useQuery({
-    queryKey: boardQueryKey(boardId),
-    queryFn: () => apiClient.get<BoardDetailResponse>(`/boards/${boardId}`),
+    queryKey: boardQueryKey(boardId, filters),
+    queryFn: () =>
+      apiClient.get<BoardDetailResponse>(`/boards/${boardId}`, {
+        query: { ...filters },
+      }),
   })
 }

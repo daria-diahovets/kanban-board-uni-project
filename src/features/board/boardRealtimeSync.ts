@@ -1,13 +1,14 @@
 import type { QueryClient } from '@tanstack/react-query'
-import type { BoardDetailResponse } from '../../types/api'
+import type { BoardDetailResponse, BoardFilters } from '../../types/api'
 import { REFETCH, patchBoard } from './boardPatch'
 import { SERVER_EVENTS } from './realtimeEvents'
 import type { RealtimePayload } from './realtimeEvents'
-import { boardQueryKey } from './useBoard'
+import { boardQueryKey, boardQueryScope } from './useBoard'
 
 type BoardEventTarget = {
   boardId: string
   viewerId: string
+  filters: BoardFilters
 }
 
 export function applyBoardEvent(
@@ -20,24 +21,26 @@ export function applyBoardEvent(
     return
   }
 
-  const queryKey = boardQueryKey(target.boardId)
+  const scope = boardQueryScope(target.boardId)
 
   if (event === SERVER_EVENTS.boardDeleted) {
-    queryClient.removeQueries({ queryKey })
+    queryClient.removeQueries({ queryKey: scope })
     return
   }
 
+  const queryKey = boardQueryKey(target.boardId, target.filters)
   const cached = queryClient.getQueryData<BoardDetailResponse>(queryKey)
+  const filtered = Object.keys(target.filters).length > 0
 
-  if (!cached) {
-    void queryClient.invalidateQueries({ queryKey })
+  if (!cached || filtered) {
+    void queryClient.invalidateQueries({ queryKey: scope })
     return
   }
 
   const patched = patchBoard(cached.board, event, payload)
 
   if (patched === REFETCH) {
-    void queryClient.invalidateQueries({ queryKey })
+    void queryClient.invalidateQueries({ queryKey: scope })
     return
   }
 

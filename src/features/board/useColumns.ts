@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '../../lib/apiClient'
 import type { ColumnSummary } from '../../types/api'
-import { boardQueryKey } from './useBoard'
+import { boardQueryScope } from './useBoard'
 
 type ColumnPayload = { column: ColumnSummary }
 
@@ -10,7 +10,7 @@ function useColumnMutation<Input>(boardId: string, mutationFn: (input: Input) =>
 
   return useMutation({
     mutationFn,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: boardQueryKey(boardId) }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: boardQueryScope(boardId) }),
   })
 }
 

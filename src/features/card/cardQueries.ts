@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import type { QueryKey } from '@tanstack/react-query'
-import { boardQueryKey } from '../board/useBoard'
+import { boardQueryScope } from '../board/useBoard'
 
 export function cardQueryKey(cardId: string) {
   return ['card', cardId] as const
@@ -32,7 +32,7 @@ export function useCardRefresh(scope: CardScope, extraKeys: QueryKey[] = []) {
 
   return async () => {
     await Promise.all(
-      [cardQueryKey(scope.cardId), boardQueryKey(scope.boardId), ...extraKeys].map((queryKey) =>
+      [cardQueryKey(scope.cardId), boardQueryScope(scope.boardId), ...extraKeys].map((queryKey) =>
         queryClient.invalidateQueries({ queryKey }),
       ),
     )

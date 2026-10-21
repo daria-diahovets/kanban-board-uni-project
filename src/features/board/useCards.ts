@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '../../lib/apiClient'
 import type { CardDetail } from '../../types/api'
-import { boardQueryKey } from './useBoard'
+import { boardQueryScope } from './useBoard'
 
 export type CreateCardInput = {
   columnId: string
@@ -20,6 +20,6 @@ export function useCreateCard(boardId: string) {
         ...(card.dueDate === null ? {} : { dueDate: card.dueDate }),
         ...(card.assigneeIds.length === 0 ? {} : { assigneeIds: card.assigneeIds }),
       }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: boardQueryKey(boardId) }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: boardQueryScope(boardId) }),
   })
 }

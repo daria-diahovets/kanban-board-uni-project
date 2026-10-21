@@ -1,7 +1,10 @@
+import { useEffect } from 'react'
 import { Link, useParams } from 'react-router'
 import { ErrorBanner } from '../../components/ErrorBanner/ErrorBanner'
 import { StatusChip } from '../../ui/Chip/Chip'
 import { Spinner } from '../../ui/Spinner/Spinner'
+import { FilterBar } from '../filters/FilterBar'
+import { useBoardFilters, useFilterStore } from '../filters/filterStore'
 import { BoardCanvas } from './BoardCanvas'
 import { useBoard } from './useBoard'
 import { useBoardRealtime } from './useBoardRealtime'
@@ -9,8 +12,16 @@ import './BoardPage.css'
 
 export function BoardPage() {
   const { boardId } = useParams<{ boardId: string }>()
-  const query = useBoard(boardId ?? '')
+  const focusBoard = useFilterStore((state) => state.focusBoard)
+  const filters = useBoardFilters(boardId ?? '')
+  const query = useBoard(boardId ?? '', filters)
   const realtimeStatus = useBoardRealtime(boardId ?? '')
+
+  useEffect(() => {
+    if (boardId) {
+      focusBoard(boardId)
+    }
+  }, [boardId, focusBoard])
 
   if (query.isPending) {
     return (
@@ -31,6 +42,7 @@ export function BoardPage() {
 
   const { board, viewerRole } = query.data
   const cardTotal = board.columns.reduce((total, column) => total + column.activeCardCount, 0)
+  const matchingCards = board.columns.reduce((total, column) => total + column.cards.length, 0)
   const editable = !board.isArchived
   const cardsEditable = editable && (viewerRole === 'OWNER' || viewerRole === 'MEMBER')
   const columnsManageable = editable && viewerRole === 'OWNER'
@@ -64,6 +76,8 @@ export function BoardPage() {
           <dd>{cardTotal}</dd>
         </dl>
       </header>
+
+      <FilterBar members={board.members} labels={board.labels} matchingCards={matchingCards} />
 
       <BoardCanvas
         boardId={board.id}

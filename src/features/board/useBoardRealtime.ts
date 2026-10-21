@@ -2,10 +2,11 @@ import { useEffect, useRef, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { connectSocket } from '../../lib/socket'
 import { useAuth } from '../auth/useAuth'
+import { activeBoardFilters } from '../filters/filterStore'
 import { applyBoardEvent } from './boardRealtimeSync'
 import { CLIENT_EVENTS, SERVER_EVENT_NAMES, joinRoomAcknowledgement } from './realtimeEvents'
 import type { RealtimePayload } from './realtimeEvents'
-import { boardQueryKey } from './useBoard'
+import { boardQueryScope } from './useBoard'
 
 export type RealtimeStatus = 'idle' | 'joined' | 'refused'
 
@@ -32,7 +33,7 @@ export function useBoardRealtime(boardId: string) {
         setStatus(joined ? 'joined' : 'refused')
 
         if (joined && joinedBefore.current) {
-          void queryClient.invalidateQueries({ queryKey: boardQueryKey(boardId) })
+          void queryClient.invalidateQueries({ queryKey: boardQueryScope(boardId) })
         }
 
         joinedBefore.current = joinedBefore.current || joined !== null
@@ -43,7 +44,12 @@ export function useBoardRealtime(boardId: string) {
         [
           event,
           (payload: RealtimePayload) =>
-            applyBoardEvent(queryClient, { boardId, viewerId: user.id }, event, payload),
+            applyBoardEvent(
+              queryClient,
+              { boardId, viewerId: user.id, filters: activeBoardFilters(boardId) },
+              event,
+              payload,
+            ),
         ] as const,
     )
 

@@ -1,0 +1,48 @@
+.rb-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3) var(--sp-4);
+  align-items: flex-start;
+  border: var(--border-thick) solid var(--border-color);
+  padding: var(--sp-3);
+}
+
+.rb-filters__search {
+  min-width: 260px;
+  flex: 1 1 260px;
+}
+
+.rb-filters__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.rb-filters__heading {
+  font-family: var(--font-headline);
+  font-size: var(--text-tiny-size);
+  line-height: var(--text-tiny-line);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+.rb-filters__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  align-items: center;
+}
+
+.rb-filters__note {
+  font-family: var(--font-body);
+  font-size: var(--text-tiny-size);
+  color: var(--content-secondary);
+}
+
+.rb-filters__summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  align-items: center;
+  margin-left: auto;
+}
