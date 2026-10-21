@@ -1,5 +1,6 @@
 import { createBrowserRouter } from 'react-router'
 import { AppShell } from '../components/AppShell/AppShell'
+import { AdminBoardsPage } from '../features/admin/AdminBoardsPage'
 import { LoginPage } from '../features/auth/LoginPage'
 import { RegisterPage } from '../features/auth/RegisterPage'
 import { BoardPage } from '../features/board/BoardPage'
@@ -26,6 +27,7 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <BoardListPage /> },
           { path: 'boards/:boardId', element: <BoardPage /> },
+          { path: 'admin', element: <AdminBoardsPage /> },
         ],
       },
     ],
