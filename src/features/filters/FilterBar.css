@@ -46,3 +46,17 @@
   align-items: center;
   margin-left: auto;
 }
+
+@media (max-width: 720px) {
+  .rb-filters {
+    flex-direction: column;
+  }
+
+  .rb-filters__search {
+    width: 100%;
+  }
+
+  .rb-filters__summary {
+    margin-left: 0;
+  }
+}

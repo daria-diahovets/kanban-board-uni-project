@@ -36,6 +36,7 @@ type BoardCanvasProps = {
   cardsEditable: boolean
   columnsManageable: boolean
   isBoardOwner: boolean
+  filtered: boolean
 }
 
 const POINTER_ACTIVATION_DISTANCE = 5
@@ -47,6 +48,7 @@ export function BoardCanvas({
   cardsEditable,
   columnsManageable,
   isBoardOwner,
+  filtered,
 }: BoardCanvasProps) {
   const moveCard = useMoveCard(boardId)
   const moveColumn = useMoveColumn(boardId)
@@ -140,6 +142,7 @@ export function BoardCanvas({
                   columnDraggable={columnsManageable}
                   cardsDraggable={cardsEditable}
                   onOpenCard={setOpenCardId}
+                  filtered={filtered}
                   controls={
                     columnsManageable ? <ColumnControls boardId={boardId} column={column} /> : null
                   }

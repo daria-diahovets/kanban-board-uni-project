@@ -51,3 +51,11 @@
   text-transform: uppercase;
   color: var(--content-secondary);
 }
+
+@media (max-width: 720px) {
+  .rb-lane {
+    width: 280px;
+    min-width: 280px;
+    padding: var(--sp-3);
+  }
+}

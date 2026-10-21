@@ -9,3 +9,9 @@
   flex: 1;
   padding: var(--sp-5) var(--sp-4);
 }
+
+@media (max-width: 720px) {
+  .rb-shell__main {
+    padding: var(--sp-4) var(--sp-3);
+  }
+}

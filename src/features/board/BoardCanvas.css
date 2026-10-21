@@ -11,7 +11,13 @@
   margin: 0;
   padding: 0 0 var(--sp-3);
   overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
   list-style: none;
+}
+
+.rb-canvas__lanes > li {
+  scroll-snap-align: start;
 }
 
 .rb-canvas__empty {
@@ -31,4 +37,11 @@
 
 .rb-sortable--dragging {
   visibility: hidden;
+}
+
+@media (max-width: 720px) {
+  .rb-canvas__empty {
+    font-size: var(--text-h4-size);
+    line-height: var(--text-h4-line);
+  }
 }

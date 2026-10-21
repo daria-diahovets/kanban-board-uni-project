@@ -72,7 +72,13 @@
   margin: 0;
   padding: 0 0 var(--sp-3);
   overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
   list-style: none;
+}
+
+.rb-guest__lanes > li {
+  scroll-snap-align: start;
 }
 
 .rb-guest__lane {
@@ -163,4 +169,16 @@
   font-family: var(--font-mono);
   font-size: var(--text-small-size);
   letter-spacing: var(--tracking-label);
+}
+
+@media (max-width: 720px) {
+  .rb-guest {
+    padding: var(--sp-4) var(--sp-3);
+  }
+
+  .rb-guest__lane {
+    width: 280px;
+    min-width: 280px;
+    padding: var(--sp-3);
+  }
 }

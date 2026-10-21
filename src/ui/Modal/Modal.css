@@ -1,4 +1,6 @@
 .rb-modal {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
   width: min(680px, calc(100vw - var(--sp-5)));
   max-height: calc(100vh - var(--sp-5));
   border: var(--border-heavy) solid var(--border-color);
@@ -48,6 +50,7 @@
 }
 
 .rb-modal__body {
+  overflow-y: auto;
   padding: var(--sp-4);
 }
 

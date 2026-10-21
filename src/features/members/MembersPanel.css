@@ -82,3 +82,11 @@
   font-size: var(--text-small-size);
   overflow-wrap: anywhere;
 }
+
+@media (max-width: 720px) {
+  .rb-members__item,
+  .rb-members__controls {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

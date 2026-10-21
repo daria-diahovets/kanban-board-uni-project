@@ -12,6 +12,7 @@ type ColumnLaneProps = {
   headerActions?: ReactNode
   renderCard?: (card: BoardCard) => ReactNode
   footer?: ReactNode
+  filtered?: boolean
   className?: string
 }
 
@@ -34,6 +35,7 @@ export function ColumnLane({
   headerActions,
   renderCard,
   footer,
+  filtered = false,
   className,
 }: ColumnLaneProps) {
   const limit = capacity(column)
@@ -56,7 +58,9 @@ export function ColumnLane({
           ))}
         </ul>
       ) : (
-        <p className="rb-lane__empty">No cards</p>
+        <p className="rb-lane__empty">
+          {filtered ? `No cards match the filters, ${column.activeCardCount} hidden` : 'No cards'}
+        </p>
       )}
 
       {footer}

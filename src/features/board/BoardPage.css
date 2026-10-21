@@ -85,3 +85,13 @@
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
 }
+
+@media (max-width: 720px) {
+  .rb-board__head {
+    padding-bottom: var(--sp-3);
+  }
+
+  .rb-board__facts {
+    gap: var(--sp-1) var(--sp-3);
+  }
+}

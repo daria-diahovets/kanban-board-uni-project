@@ -21,7 +21,7 @@
 
 .rb-boards__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
   gap: var(--sp-3);
   margin: 0;
   padding: 0;
@@ -56,4 +56,11 @@
   font-family: var(--font-body);
   font-size: var(--text-body-size);
   line-height: var(--text-body-line);
+}
+
+.rb-boards__hint {
+  font-family: var(--font-body);
+  font-size: var(--text-small-size);
+  line-height: var(--text-small-line);
+  color: var(--content-secondary);
 }

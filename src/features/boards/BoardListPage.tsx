@@ -129,7 +129,10 @@ export function BoardListPage() {
           ))}
         </ul>
       ) : (
-        <p className="rb-boards__empty">No boards yet</p>
+        <div className="rb-boards__state">
+          <p className="rb-boards__empty">No boards yet</p>
+          <p className="rb-boards__hint">Create the first one with the form above.</p>
+        </div>
       )}
 
       {archived.length > 0 ? (

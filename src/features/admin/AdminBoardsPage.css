@@ -87,3 +87,13 @@
   flex-direction: column;
   gap: var(--sp-2);
 }
+
+@media (max-width: 720px) {
+  .rb-admin__row {
+    flex-direction: column;
+  }
+
+  .rb-admin__facts {
+    width: 100%;
+  }
+}

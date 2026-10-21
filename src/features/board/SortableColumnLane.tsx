@@ -13,6 +13,7 @@ type SortableColumnLaneProps = {
   cardsDraggable: boolean
   controls?: ReactNode
   footer?: ReactNode
+  filtered?: boolean
   onOpenCard?: (cardId: string) => void
 }
 
@@ -22,6 +23,7 @@ export function SortableColumnLane({
   cardsDraggable,
   controls,
   footer,
+  filtered,
   onOpenCard,
 }: SortableColumnLaneProps) {
   const {
@@ -73,6 +75,7 @@ export function SortableColumnLane({
             <SortableCardTile card={card} draggable={cardsDraggable} onOpen={onOpenCard} />
           )}
           footer={footer}
+          filtered={filtered}
         />
       </SortableContext>
     </div>

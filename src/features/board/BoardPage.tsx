@@ -63,6 +63,7 @@ export function BoardPage() {
           <div className="rb-board__chips">
             <StatusChip>{viewerRole}</StatusChip>
             {board.isArchived ? <StatusChip tone="warning">Archived</StatusChip> : null}
+            {query.isFetching ? <StatusChip>Refreshing</StatusChip> : null}
             {realtimeStatus === 'joined' ? <StatusChip tone="success">Live</StatusChip> : null}
             {realtimeStatus === 'refused' ? (
               <StatusChip tone="error">No live updates</StatusChip>
@@ -94,6 +95,7 @@ export function BoardPage() {
         cardsEditable={cardsEditable}
         columnsManageable={columnsManageable}
         isBoardOwner={viewerRole === 'OWNER'}
+        filtered={Object.keys(filters).length > 0}
       />
 
       {membersOpen ? (
