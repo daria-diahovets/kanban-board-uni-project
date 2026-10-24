@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { prisma } from '../src/config/prisma'
-import { api, bearer } from './helpers/api'
+import { api, sessionCookie } from './helpers/api'
 import { at, sorted } from './helpers/items'
 import {
   createBoardWithColumns,
@@ -23,7 +23,7 @@ type MoveBody = {
 }
 
 function moveCard(token: string, cardId: string, body: MoveBody) {
-  return api().post(`/api/cards/${cardId}/move`).set('authorization', bearer(token)).send(body)
+  return api().post(`/api/cards/${cardId}/move`).set('cookie', sessionCookie(token)).send(body)
 }
 
 async function orderedCards(columnId: string) {
@@ -254,7 +254,7 @@ describe('POST /api/columns/:columnId/move under concurrency', () => {
         movers.map((mover) =>
           api()
             .post(`/api/columns/${mover.id}/move`)
-            .set('authorization', bearer(owner.token))
+            .set('cookie', sessionCookie(owner.token))
             .send(slot),
         ),
       )

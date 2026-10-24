@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { Response } from 'supertest'
 import { prisma } from '../src/config/prisma'
-import { api, bearer } from './helpers/api'
+import { api, sessionCookie } from './helpers/api'
 import {
   addBoardMember,
   createBoard,
@@ -56,7 +56,7 @@ beforeEach(async () => {
 })
 
 function asUser(user: TestUser) {
-  return bearer(user.token)
+  return sessionCookie(user.token)
 }
 
 describe('GET /api/boards', () => {
@@ -64,11 +64,9 @@ describe('GET /api/boards', () => {
     const otherOwner = await createUser()
     await createBoard(otherOwner.id, { title: 'Somebody else board' })
 
-    const forOwner = await api().get('/api/boards').set('authorization', asUser(fixture.owner))
-    const forViewer = await api().get('/api/boards').set('authorization', asUser(fixture.viewer))
-    const forOutsider = await api()
-      .get('/api/boards')
-      .set('authorization', asUser(fixture.outsider))
+    const forOwner = await api().get('/api/boards').set('cookie', asUser(fixture.owner))
+    const forViewer = await api().get('/api/boards').set('cookie', asUser(fixture.viewer))
+    const forOutsider = await api().get('/api/boards').set('cookie', asUser(fixture.outsider))
 
     expect(forOwner.body.boards.map((board: { title: string }) => board.title)).toEqual(['Roadmap'])
     expect(forViewer.body.boards.map((board: { title: string }) => board.title)).toEqual([
@@ -78,7 +76,7 @@ describe('GET /api/boards', () => {
   })
 
   it('does not widen the list for an admin', async () => {
-    const forAdmin = await api().get('/api/boards').set('authorization', asUser(fixture.admin))
+    const forAdmin = await api().get('/api/boards').set('cookie', asUser(fixture.admin))
 
     expect(forAdmin.body.boards).toEqual([])
   })
@@ -92,7 +90,7 @@ describe('board mutations', () => {
   it('lets the owner rename, archive, un-archive and delete the board', async () => {
     const renamed = await api()
       .patch(`/api/boards/${fixture.boardId}`)
-      .set('authorization', asUser(fixture.owner))
+      .set('cookie', asUser(fixture.owner))
       .send({ title: 'Roadmap 2027', description: 'Next year' })
 
     expect(renamed.status).toBe(200)
@@ -100,7 +98,7 @@ describe('board mutations', () => {
 
     const archived = await api()
       .patch(`/api/boards/${fixture.boardId}/archive`)
-      .set('authorization', asUser(fixture.owner))
+      .set('cookie', asUser(fixture.owner))
       .send({ isArchived: true })
 
     expect(archived.status).toBe(200)
@@ -108,7 +106,7 @@ describe('board mutations', () => {
 
     const blocked = await api()
       .post(`/api/columns/${fixture.columnId}/cards`)
-      .set('authorization', asUser(fixture.member))
+      .set('cookie', asUser(fixture.member))
       .send({ title: 'Not while archived' })
 
     expect(blocked.status).toBe(403)
@@ -116,20 +114,20 @@ describe('board mutations', () => {
 
     const stillReadable = await api()
       .get(`/api/boards/${fixture.boardId}`)
-      .set('authorization', asUser(fixture.viewer))
+      .set('cookie', asUser(fixture.viewer))
 
     expect(stillReadable.status).toBe(200)
 
     const restored = await api()
       .patch(`/api/boards/${fixture.boardId}/archive`)
-      .set('authorization', asUser(fixture.owner))
+      .set('cookie', asUser(fixture.owner))
       .send({ isArchived: false })
 
     expect(restored.body.board.isArchived).toBe(false)
 
     const deleted = await api()
       .delete(`/api/boards/${fixture.boardId}`)
-      .set('authorization', asUser(fixture.owner))
+      .set('cookie', asUser(fixture.owner))
 
     expect(deleted.status).toBe(204)
     expect(await prisma.board.count({ where: { id: fixture.boardId } })).toBe(0)
@@ -138,7 +136,7 @@ describe('board mutations', () => {
   it('creates a board with its creator as the owner member', async () => {
     const response = await api()
       .post('/api/boards')
-      .set('authorization', asUser(fixture.outsider))
+      .set('cookie', asUser(fixture.outsider))
       .send({ title: 'Fresh board' })
 
     expect(response.status).toBe(201)
@@ -156,7 +154,7 @@ describe('board members', () => {
   it('lists members with their roles', async () => {
     const response = await api()
       .get(`/api/boards/${fixture.boardId}/members`)
-      .set('authorization', asUser(fixture.viewer))
+      .set('cookie', asUser(fixture.viewer))
 
     expect(response.status).toBe(200)
     expect(sorted(response.body.members.map((entry: { role: string }) => entry.role))).toEqual([
@@ -169,7 +167,7 @@ describe('board members', () => {
   it('invites by email, changes a role and removes a member', async () => {
     const invited = await api()
       .post(`/api/boards/${fixture.boardId}/members`)
-      .set('authorization', asUser(fixture.owner))
+      .set('cookie', asUser(fixture.owner))
       .send({ email: fixture.outsider.email, role: 'VIEWER' })
 
     expect(invited.status).toBe(201)
@@ -178,7 +176,7 @@ describe('board members', () => {
 
     const promoted = await api()
       .patch(`/api/boards/${fixture.boardId}/members/${fixture.outsider.id}`)
-      .set('authorization', asUser(fixture.owner))
+      .set('cookie', asUser(fixture.owner))
       .send({ role: 'MEMBER' })
 
     expect(promoted.status).toBe(200)
@@ -186,7 +184,7 @@ describe('board members', () => {
 
     const removed = await api()
       .delete(`/api/boards/${fixture.boardId}/members/${fixture.outsider.id}`)
-      .set('authorization', asUser(fixture.owner))
+      .set('cookie', asUser(fixture.owner))
 
     expect(removed.status).toBe(204)
     expect(
@@ -199,11 +197,11 @@ describe('board members', () => {
   it('refuses to invite an unknown email or an existing member', async () => {
     const unknown = await api()
       .post(`/api/boards/${fixture.boardId}/members`)
-      .set('authorization', asUser(fixture.owner))
+      .set('cookie', asUser(fixture.owner))
       .send({ email: 'nobody@kanban.test' })
     const duplicate = await api()
       .post(`/api/boards/${fixture.boardId}/members`)
-      .set('authorization', asUser(fixture.owner))
+      .set('cookie', asUser(fixture.owner))
       .send({ email: fixture.member.email })
 
     expect(unknown.status).toBe(404)
@@ -214,11 +212,11 @@ describe('board members', () => {
   it('refuses to change or remove the owner membership', async () => {
     const roleChange = await api()
       .patch(`/api/boards/${fixture.boardId}/members/${fixture.owner.id}`)
-      .set('authorization', asUser(fixture.owner))
+      .set('cookie', asUser(fixture.owner))
       .send({ role: 'MEMBER' })
     const removal = await api()
       .delete(`/api/boards/${fixture.boardId}/members/${fixture.owner.id}`)
-      .set('authorization', asUser(fixture.owner))
+      .set('cookie', asUser(fixture.owner))
 
     expect(roleChange.status).toBe(409)
     expect(removal.status).toBe(409)
@@ -228,7 +226,7 @@ describe('board members', () => {
   it('refuses to assign the OWNER role through the member endpoints', async () => {
     const response = await api()
       .post(`/api/boards/${fixture.boardId}/members`)
-      .set('authorization', asUser(fixture.owner))
+      .set('cookie', asUser(fixture.owner))
       .send({ email: fixture.outsider.email, role: 'OWNER' })
 
     expect(response.status).toBe(422)
@@ -239,7 +237,7 @@ describe('share link and guest access', () => {
   async function createShareLink() {
     return api()
       .post(`/api/boards/${fixture.boardId}/share-link`)
-      .set('authorization', asUser(fixture.owner))
+      .set('cookie', asUser(fixture.owner))
       .send({})
   }
 
@@ -251,14 +249,14 @@ describe('share link and guest access', () => {
 
     const read = await api()
       .get(`/api/boards/${fixture.boardId}/share-link`)
-      .set('authorization', asUser(fixture.owner))
+      .set('cookie', asUser(fixture.owner))
 
     expect(read.status).toBe(200)
     expect(read.body.shareLink.token).toBe(created.body.shareLink.token)
 
     const revoked = await api()
       .delete(`/api/boards/${fixture.boardId}/share-link`)
-      .set('authorization', asUser(fixture.owner))
+      .set('cookie', asUser(fixture.owner))
 
     expect(revoked.status).toBe(204)
 
@@ -301,12 +299,8 @@ describe('share link and guest access', () => {
 
 describe('admin endpoints', () => {
   it('lists every board for an admin and nobody else', async () => {
-    const forAdmin = await api()
-      .get('/api/admin/boards')
-      .set('authorization', asUser(fixture.admin))
-    const forOwner = await api()
-      .get('/api/admin/boards')
-      .set('authorization', asUser(fixture.owner))
+    const forAdmin = await api().get('/api/admin/boards').set('cookie', asUser(fixture.admin))
+    const forOwner = await api().get('/api/admin/boards').set('cookie', asUser(fixture.owner))
 
     expect(forAdmin.status).toBe(200)
     expect(forAdmin.body.boards.map((board: { title: string }) => board.title)).toEqual(['Roadmap'])
@@ -316,7 +310,7 @@ describe('admin endpoints', () => {
   it('transfers ownership and demotes the previous owner to member', async () => {
     const response = await api()
       .post(`/api/admin/boards/${fixture.boardId}/transfer-ownership`)
-      .set('authorization', asUser(fixture.admin))
+      .set('cookie', asUser(fixture.admin))
       .send({ newOwnerId: fixture.member.id })
 
     expect(response.status).toBe(200)
@@ -336,15 +330,15 @@ describe('admin endpoints', () => {
   it('refuses an unknown board, an unknown user and the current owner', async () => {
     const unknownBoard = await api()
       .post('/api/admin/boards/00000000-0000-4000-8000-000000000000/transfer-ownership')
-      .set('authorization', asUser(fixture.admin))
+      .set('cookie', asUser(fixture.admin))
       .send({ newOwnerId: fixture.member.id })
     const unknownUser = await api()
       .post(`/api/admin/boards/${fixture.boardId}/transfer-ownership`)
-      .set('authorization', asUser(fixture.admin))
+      .set('cookie', asUser(fixture.admin))
       .send({ newOwnerId: '00000000-0000-4000-8000-000000000000' })
     const sameOwner = await api()
       .post(`/api/admin/boards/${fixture.boardId}/transfer-ownership`)
-      .set('authorization', asUser(fixture.admin))
+      .set('cookie', asUser(fixture.admin))
       .send({ newOwnerId: fixture.owner.id })
 
     expect(unknownBoard.status).toBe(404)
@@ -368,13 +362,12 @@ describe('the role matrix from section 7', () => {
     {
       action: 'view the board tree',
       allowed: ['viewer', 'member', 'owner', 'admin'],
-      perform: (token) => api().get(`/api/boards/${fixture.boardId}`).set('authorization', token),
+      perform: (token) => api().get(`/api/boards/${fixture.boardId}`).set('cookie', token),
     },
     {
       action: 'read comments',
       allowed: ['viewer', 'member', 'owner', 'admin'],
-      perform: (token) =>
-        api().get(`/api/cards/${fixture.cardId}/comments`).set('authorization', token),
+      perform: (token) => api().get(`/api/cards/${fixture.cardId}/comments`).set('cookie', token),
     },
     {
       action: 'create a card',
@@ -382,7 +375,7 @@ describe('the role matrix from section 7', () => {
       perform: (token) =>
         api()
           .post(`/api/columns/${fixture.columnId}/cards`)
-          .set('authorization', token)
+          .set('cookie', token)
           .send({ title: 'Matrix card' }),
     },
     {
@@ -391,7 +384,7 @@ describe('the role matrix from section 7', () => {
       perform: (token) =>
         api()
           .patch(`/api/cards/${fixture.cardId}`)
-          .set('authorization', token)
+          .set('cookie', token)
           .send({ title: 'Matrix title' }),
     },
     {
@@ -400,7 +393,7 @@ describe('the role matrix from section 7', () => {
       perform: (token) =>
         api()
           .post(`/api/cards/${fixture.cardId}/move`)
-          .set('authorization', token)
+          .set('cookie', token)
           .send({ targetColumnId: fixture.columnId }),
     },
     {
@@ -409,7 +402,7 @@ describe('the role matrix from section 7', () => {
       perform: (token) =>
         api()
           .post(`/api/cards/${fixture.cardId}/comments`)
-          .set('authorization', token)
+          .set('cookie', token)
           .send({ body: 'Matrix comment' }),
     },
     {
@@ -418,7 +411,7 @@ describe('the role matrix from section 7', () => {
       perform: (token) =>
         api()
           .post(`/api/cards/${fixture.cardId}/checklist`)
-          .set('authorization', token)
+          .set('cookie', token)
           .send({ text: 'Matrix item' }),
     },
     {
@@ -427,7 +420,7 @@ describe('the role matrix from section 7', () => {
       perform: (token) =>
         api()
           .post(`/api/boards/${fixture.boardId}/labels`)
-          .set('authorization', token)
+          .set('cookie', token)
           .send({ name: `Matrix ${Math.random()}` }),
     },
     {
@@ -436,7 +429,7 @@ describe('the role matrix from section 7', () => {
       perform: (token) =>
         api()
           .put(`/api/cards/${fixture.cardId}/labels`)
-          .set('authorization', token)
+          .set('cookie', token)
           .send({ labelIds: [fixture.labelId] }),
     },
     {
@@ -445,23 +438,20 @@ describe('the role matrix from section 7', () => {
       perform: (token) =>
         api()
           .post(`/api/boards/${fixture.boardId}/columns`)
-          .set('authorization', token)
+          .set('cookie', token)
           .send({ title: 'Matrix column' }),
     },
     {
       action: 'set a column wip limit',
       allowed: ['owner'],
       perform: (token) =>
-        api()
-          .patch(`/api/columns/${fixture.columnId}`)
-          .set('authorization', token)
-          .send({ wipLimit: 5 }),
+        api().patch(`/api/columns/${fixture.columnId}`).set('cookie', token).send({ wipLimit: 5 }),
     },
     {
       action: 'reorder a column',
       allowed: ['owner'],
       perform: (token) =>
-        api().post(`/api/columns/${fixture.columnId}/move`).set('authorization', token).send({}),
+        api().post(`/api/columns/${fixture.columnId}/move`).set('cookie', token).send({}),
     },
     {
       action: 'invite a member',
@@ -469,17 +459,14 @@ describe('the role matrix from section 7', () => {
       perform: (token) =>
         api()
           .post(`/api/boards/${fixture.boardId}/members`)
-          .set('authorization', token)
+          .set('cookie', token)
           .send({ email: fixture.outsider.email }),
     },
     {
       action: 'create a share link',
       allowed: ['owner'],
       perform: (token) =>
-        api()
-          .post(`/api/boards/${fixture.boardId}/share-link`)
-          .set('authorization', token)
-          .send({}),
+        api().post(`/api/boards/${fixture.boardId}/share-link`).set('cookie', token).send({}),
     },
     {
       action: 'archive the board',
@@ -487,7 +474,7 @@ describe('the role matrix from section 7', () => {
       perform: (token) =>
         api()
           .patch(`/api/boards/${fixture.boardId}/archive`)
-          .set('authorization', token)
+          .set('cookie', token)
           .send({ isArchived: true }),
     },
     {
@@ -496,7 +483,7 @@ describe('the role matrix from section 7', () => {
       perform: (token) =>
         api()
           .patch(`/api/boards/${fixture.boardId}`)
-          .set('authorization', token)
+          .set('cookie', token)
           .send({ title: 'Matrix board' }),
     },
   ]

@@ -25,12 +25,7 @@
   color: var(--content-primary);
 }
 
-.rb-field__control:hover:not(:disabled) {
-  background-color: var(--surface-sunken-hover);
-}
-
 .rb-field__control:focus {
-  border-width: var(--border-heavy);
   outline: none;
 }
 

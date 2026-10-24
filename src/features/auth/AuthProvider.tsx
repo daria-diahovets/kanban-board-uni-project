@@ -1,13 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import {
-  ApiError,
-  apiClient,
-  clearAuthToken,
-  getAuthToken,
-  setAuthToken,
-} from '../../lib/apiClient'
+import { apiClient } from '../../lib/apiClient'
 import { disconnectSocket } from '../../lib/socket'
 import type { AuthResponse, AuthenticatedUser } from '../../types/api'
 import { AuthContext } from './authContext'
@@ -20,13 +14,9 @@ type AuthProviderProps = {
 export function AuthProvider({ children }: AuthProviderProps) {
   const queryClient = useQueryClient()
   const [user, setUser] = useState<AuthenticatedUser | null>(null)
-  const [status, setStatus] = useState<AuthStatus>(getAuthToken() ? 'loading' : 'anonymous')
+  const [status, setStatus] = useState<AuthStatus>('loading')
 
   useEffect(() => {
-    if (!getAuthToken()) {
-      return
-    }
-
     let cancelled = false
 
     apiClient
@@ -39,13 +29,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setUser(payload.user)
         setStatus('authenticated')
       })
-      .catch((error: unknown) => {
+      .catch(() => {
         if (cancelled) {
           return
-        }
-
-        if (error instanceof ApiError && error.isUnauthorized) {
-          clearAuthToken()
         }
 
         setUser(null)
@@ -63,7 +49,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       disconnectSocket()
       queryClient.clear()
-      setAuthToken(payload.token)
       setUser(payload.user)
       setStatus('authenticated')
     },
@@ -78,7 +63,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       signUp: (input: SignUpInput) => authenticate('/auth/register', input),
       signOut: () => {
         disconnectSocket()
-        clearAuthToken()
+        void apiClient.post('/auth/logout').catch(() => undefined)
         queryClient.clear()
         setUser(null)
         setStatus('anonymous')

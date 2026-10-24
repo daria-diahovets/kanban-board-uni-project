@@ -27,6 +27,16 @@ export function signAccessToken(user: TokenSubject) {
   )
 }
 
+export function accessTokenExpiresAt(token: string) {
+  const decoded = jwt.decode(token)
+
+  if (decoded === null || typeof decoded === 'string' || typeof decoded.exp !== 'number') {
+    throw ApiError.unauthorized('Access token has no expiry')
+  }
+
+  return new Date(decoded.exp * 1000)
+}
+
 export function verifyAccessToken(token: string): AccessTokenPayload {
   let decoded: unknown
 

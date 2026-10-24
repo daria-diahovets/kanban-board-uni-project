@@ -7,7 +7,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { createApp } from '../src/app'
 import { emitToBoard } from '../src/realtime/emit'
 import { closeRealtime, initializeRealtime } from '../src/realtime/io'
-import { api, bearer } from './helpers/api'
+import { api, sessionCookie } from './helpers/api'
 import {
   addBoardMember,
   createBoard,
@@ -48,7 +48,7 @@ function openSocket(token?: string) {
   const socket = connect(serverUrl, {
     transports: ['websocket'],
     reconnection: false,
-    ...(token === undefined ? {} : { auth: { token } }),
+    ...(token === undefined ? {} : { extraHeaders: { cookie: sessionCookie(token) } }),
   })
 
   openSockets.push(socket)
@@ -96,11 +96,11 @@ async function connectedSocket(user: TestUser) {
 }
 
 describe('socket io handshake', () => {
-  it('rejects a connection without a token', async () => {
+  it('rejects a connection without a session cookie', async () => {
     const outcome = await connectionOutcome(openSocket())
 
     expect(outcome.connected).toBe(false)
-    expect(outcome.message).toContain('token is required')
+    expect(outcome.message).toContain('session cookie is required')
   })
 
   it('rejects a malformed token', async () => {
@@ -117,7 +117,7 @@ describe('socket io handshake', () => {
     expect(outcome.connected).toBe(true)
   })
 
-  it('accepts the token from an authorization header too', async () => {
+  it('refuses a token offered through an authorization header', async () => {
     const user = await createUser()
     const socket = connect(serverUrl, {
       transports: ['websocket'],
@@ -127,7 +127,23 @@ describe('socket io handshake', () => {
 
     openSockets.push(socket)
 
-    expect((await connectionOutcome(socket)).connected).toBe(true)
+    const outcome = await connectionOutcome(socket)
+
+    expect(outcome.connected).toBe(false)
+    expect(outcome.message).toContain('session cookie')
+  })
+
+  it('refuses a token offered through the handshake auth payload', async () => {
+    const user = await createUser()
+    const socket = connect(serverUrl, {
+      transports: ['websocket'],
+      reconnection: false,
+      auth: { token: user.token },
+    })
+
+    openSockets.push(socket)
+
+    expect((await connectionOutcome(socket)).connected).toBe(false)
   })
 })
 
@@ -219,7 +235,7 @@ describe('broadcasts after mutations', () => {
   }
 
   function asUser(user: TestUser) {
-    return bearer(user.token)
+    return sessionCookie(user.token)
   }
 
   it('announces a created card', async () => {
@@ -228,7 +244,7 @@ describe('broadcasts after mutations', () => {
 
     await api()
       .post(`/api/columns/${column.id}/cards`)
-      .set('authorization', asUser(member))
+      .set('cookie', asUser(member))
       .send({ title: 'Broadcast me' })
 
     expect(await event).toMatchObject({
@@ -245,7 +261,7 @@ describe('broadcasts after mutations', () => {
     const updated = nextEvent(listener, 'card:updated')
     await api()
       .patch(`/api/cards/${card.id}`)
-      .set('authorization', asUser(member))
+      .set('cookie', asUser(member))
       .send({ title: 'Renamed' })
 
     expect(await updated).toMatchObject({ actorId: member.id, card: { title: 'Renamed' } })
@@ -253,13 +269,13 @@ describe('broadcasts after mutations', () => {
     const moved = nextEvent(listener, 'card:moved')
     await api()
       .post(`/api/cards/${card.id}/move`)
-      .set('authorization', asUser(member))
+      .set('cookie', asUser(member))
       .send({ targetColumnId: column.id })
 
     expect(await moved).toMatchObject({ actorId: member.id, card: { id: card.id } })
 
     const deleted = nextEvent(listener, 'card:deleted')
-    await api().delete(`/api/cards/${card.id}`).set('authorization', asUser(member))
+    await api().delete(`/api/cards/${card.id}`).set('cookie', asUser(member))
 
     expect(await deleted).toMatchObject({
       actorId: member.id,
@@ -275,7 +291,7 @@ describe('broadcasts after mutations', () => {
 
     await api()
       .post(`/api/cards/${card.id}/checklist`)
-      .set('authorization', asUser(member))
+      .set('cookie', asUser(member))
       .send({ text: 'Step one' })
 
     expect(await event).toMatchObject({
@@ -292,7 +308,7 @@ describe('broadcasts after mutations', () => {
     const created = nextEvent(listener, 'comment:created')
     const posted = await api()
       .post(`/api/cards/${card.id}/comments`)
-      .set('authorization', asUser(member))
+      .set('cookie', asUser(member))
       .send({ body: 'First' })
 
     expect(await created).toMatchObject({
@@ -304,15 +320,13 @@ describe('broadcasts after mutations', () => {
     const updated = nextEvent(listener, 'comment:updated')
     await api()
       .patch(`/api/comments/${posted.body.comment.id}`)
-      .set('authorization', asUser(member))
+      .set('cookie', asUser(member))
       .send({ body: 'Second thoughts' })
 
     expect(await updated).toMatchObject({ comment: { body: 'Second thoughts' } })
 
     const deleted = nextEvent(listener, 'comment:deleted')
-    await api()
-      .delete(`/api/comments/${posted.body.comment.id}`)
-      .set('authorization', asUser(member))
+    await api().delete(`/api/comments/${posted.body.comment.id}`).set('cookie', asUser(member))
 
     expect(await deleted).toMatchObject({
       actorId: member.id,
@@ -327,18 +341,18 @@ describe('broadcasts after mutations', () => {
     const created = nextEvent(listener, 'column:created')
     await api()
       .post(`/api/boards/${board.id}/columns`)
-      .set('authorization', asUser(owner))
+      .set('cookie', asUser(owner))
       .send({ title: 'Doing' })
 
     expect(await created).toMatchObject({ actorId: owner.id, column: { title: 'Doing' } })
 
     const moved = nextEvent(listener, 'column:moved')
-    await api().post(`/api/columns/${column.id}/move`).set('authorization', asUser(owner)).send({})
+    await api().post(`/api/columns/${column.id}/move`).set('cookie', asUser(owner)).send({})
 
     expect(await moved).toMatchObject({ actorId: owner.id, column: { id: column.id } })
 
     const deleted = nextEvent(listener, 'column:deleted')
-    await api().delete(`/api/columns/${column.id}`).set('authorization', asUser(owner))
+    await api().delete(`/api/columns/${column.id}`).set('cookie', asUser(owner))
 
     expect(await deleted).toMatchObject({ actorId: owner.id, columnId: column.id })
   })
@@ -350,7 +364,7 @@ describe('broadcasts after mutations', () => {
     const added = nextEvent(listener, 'member:added')
     await api()
       .post(`/api/boards/${board.id}/members`)
-      .set('authorization', asUser(owner))
+      .set('cookie', asUser(owner))
       .send({ email: invitee.email, role: 'VIEWER' })
 
     expect(await added).toMatchObject({ actorId: owner.id, member: { role: 'VIEWER' } })
@@ -358,15 +372,13 @@ describe('broadcasts after mutations', () => {
     const roleChanged = nextEvent(listener, 'member:role-changed')
     await api()
       .patch(`/api/boards/${board.id}/members/${invitee.id}`)
-      .set('authorization', asUser(owner))
+      .set('cookie', asUser(owner))
       .send({ role: 'MEMBER' })
 
     expect(await roleChanged).toMatchObject({ member: { role: 'MEMBER' } })
 
     const removed = nextEvent(listener, 'member:removed')
-    await api()
-      .delete(`/api/boards/${board.id}/members/${invitee.id}`)
-      .set('authorization', asUser(owner))
+    await api().delete(`/api/boards/${board.id}/members/${invitee.id}`).set('cookie', asUser(owner))
 
     expect(await removed).toMatchObject({ actorId: owner.id, userId: invitee.id })
   })
@@ -377,7 +389,7 @@ describe('broadcasts after mutations', () => {
     const updated = nextEvent(listener, 'board:updated')
     await api()
       .patch(`/api/boards/${board.id}`)
-      .set('authorization', asUser(owner))
+      .set('cookie', asUser(owner))
       .send({ title: 'Renamed board' })
 
     expect(await updated).toMatchObject({ actorId: owner.id, board: { title: 'Renamed board' } })
@@ -385,13 +397,13 @@ describe('broadcasts after mutations', () => {
     const archived = nextEvent(listener, 'board:archived')
     await api()
       .patch(`/api/boards/${board.id}/archive`)
-      .set('authorization', asUser(owner))
+      .set('cookie', asUser(owner))
       .send({ isArchived: true })
 
     expect(await archived).toMatchObject({ actorId: owner.id, isArchived: true })
 
     const deleted = nextEvent(listener, 'board:deleted')
-    await api().delete(`/api/boards/${board.id}`).set('authorization', asUser(owner))
+    await api().delete(`/api/boards/${board.id}`).set('cookie', asUser(owner))
 
     expect(await deleted).toMatchObject({ actorId: owner.id, boardId: board.id })
   })
@@ -406,7 +418,7 @@ describe('broadcasts after mutations', () => {
 
     await api()
       .post(`/api/columns/${otherColumn.id}/cards`)
-      .set('authorization', asUser(otherOwner))
+      .set('cookie', asUser(otherOwner))
       .send({ title: 'Not yours' })
 
     expect(await leaked).toBeNull()
@@ -415,7 +427,7 @@ describe('broadcasts after mutations', () => {
 
     await api()
       .post(`/api/columns/${column.id}/cards`)
-      .set('authorization', asUser(member))
+      .set('cookie', asUser(member))
       .send({ title: 'Yours' })
 
     expect(await expected).toMatchObject({ card: { title: 'Yours' } })

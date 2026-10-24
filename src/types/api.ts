@@ -24,7 +24,6 @@ export type AuthenticatedUser = {
 
 export type AuthResponse = {
   user: AuthenticatedUser
-  token: string
 }
 
 export type Label = {

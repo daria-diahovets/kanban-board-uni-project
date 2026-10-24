@@ -1,5 +1,3 @@
-const TOKEN_STORAGE_KEY = 'kanban.token'
-
 const configuredBaseUrl = import.meta.env?.VITE_API_URL ?? ''
 
 export class ApiError extends Error {
@@ -25,36 +23,6 @@ export class ApiError extends Error {
 
   get isValidationFailure() {
     return this.status === 422
-  }
-}
-
-function readStoredToken() {
-  if (typeof localStorage === 'undefined') {
-    return null
-  }
-
-  return localStorage.getItem(TOKEN_STORAGE_KEY)
-}
-
-let authToken = readStoredToken()
-
-export function getAuthToken() {
-  return authToken
-}
-
-export function setAuthToken(token: string) {
-  authToken = token
-
-  if (typeof localStorage !== 'undefined') {
-    localStorage.setItem(TOKEN_STORAGE_KEY, token)
-  }
-}
-
-export function clearAuthToken() {
-  authToken = null
-
-  if (typeof localStorage !== 'undefined') {
-    localStorage.removeItem(TOKEN_STORAGE_KEY)
   }
 }
 
@@ -84,10 +52,6 @@ function buildUrl(path: string, query?: Record<string, QueryValue>) {
 
 function buildHeaders(body: unknown) {
   const headers = new Headers()
-
-  if (authToken) {
-    headers.set('authorization', `Bearer ${authToken}`)
-  }
 
   if (body !== undefined && !(body instanceof FormData)) {
     headers.set('content-type', 'application/json')
@@ -122,6 +86,7 @@ async function send(method: string, path: string, options: RequestOptions) {
   try {
     response = await fetch(buildUrl(path, options.query), {
       method,
+      credentials: 'include',
       headers: buildHeaders(options.body),
       body: buildBody(options.body),
       signal: options.signal,

@@ -74,7 +74,6 @@
 }
 
 .rb-button:active:not(:disabled) {
-  border-width: var(--border-heavy);
   background-color: var(--surface-inverted);
   color: var(--content-inverse);
 }

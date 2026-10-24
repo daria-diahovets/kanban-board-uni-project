@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { prisma } from '../src/config/prisma'
-import { api, bearer, loginAs } from './helpers/api'
+import { api, loginAs, readSessionCookie, sessionCookie } from './helpers/api'
 import { currentDatabaseName } from './helpers/database'
 import { TEST_PASSWORD, createUser } from './helpers/factories'
 
@@ -33,7 +33,7 @@ describe('test harness', () => {
 })
 
 describe('POST /api/auth/register', () => {
-  it('creates an account and returns a token', async () => {
+  it('creates an account and starts a session cookie', async () => {
     const response = await api()
       .post('/api/auth/register')
       .send({ email: 'new.user@kanban.test', password: TEST_PASSWORD, fullName: 'New User' })
@@ -44,8 +44,24 @@ describe('POST /api/auth/register', () => {
       fullName: 'New User',
       systemRole: 'USER',
     })
-    expect(typeof response.body.token).toBe('string')
     expect(response.body.user.passwordHash).toBeUndefined()
+    expect(response.body.token).toBeUndefined()
+    expect(typeof readSessionCookie(response.headers)).toBe('string')
+  })
+
+  it('marks the session cookie http only, same site and scoped to the root path', async () => {
+    const response = await api()
+      .post('/api/auth/register')
+      .send({ email: 'cookie.user@kanban.test', password: TEST_PASSWORD, fullName: 'Cookie User' })
+
+    const setCookie = (response.headers['set-cookie'] as unknown as string[]).find((entry) =>
+      entry.startsWith('kanban_token='),
+    )
+
+    expect(setCookie).toContain('HttpOnly')
+    expect(setCookie).toContain('SameSite=Lax')
+    expect(setCookie).toContain('Path=/')
+    expect(setCookie).toContain('Expires=')
   })
 
   it('rejects a duplicate email with 409', async () => {
@@ -95,7 +111,7 @@ describe('POST /api/auth/login', () => {
 describe('GET /api/auth/me', () => {
   it('returns the authenticated user for a factory token', async () => {
     const user = await createUser({ fullName: 'Token Owner' })
-    const response = await api().get('/api/auth/me').set('authorization', bearer(user.token))
+    const response = await api().get('/api/auth/me').set('cookie', sessionCookie(user.token))
 
     expect(response.status).toBe(200)
     expect(response.body.user).toMatchObject({ id: user.id, fullName: 'Token Owner' })
@@ -108,8 +124,59 @@ describe('GET /api/auth/me', () => {
   })
 
   it('rejects a malformed token with 401', async () => {
-    const response = await api().get('/api/auth/me').set('authorization', bearer('not.a.token'))
+    const response = await api().get('/api/auth/me').set('cookie', sessionCookie('not.a.token'))
 
     expect(response.status).toBe(401)
+  })
+
+  it('refuses a token offered through an authorization header', async () => {
+    const user = await createUser()
+    const response = await api().get('/api/auth/me').set('authorization', `Bearer ${user.token}`)
+
+    expect(response.status).toBe(401)
+  })
+})
+
+describe('POST /api/auth/logout', () => {
+  it('clears the session cookie and ends access', async () => {
+    const user = await createUser()
+    const response = await api().post('/api/auth/logout').set('cookie', sessionCookie(user.token))
+
+    expect(response.status).toBe(204)
+    expect(readSessionCookie(response.headers)).toBeUndefined()
+
+    const afterLogout = await api().get('/api/auth/me')
+
+    expect(afterLogout.status).toBe(401)
+  })
+
+  it('answers the same way without a session', async () => {
+    const response = await api().post('/api/auth/logout')
+
+    expect(response.status).toBe(204)
+  })
+})
+
+describe('cross-site protection', () => {
+  it('refuses a write request announced as cross-site', async () => {
+    const user = await createUser()
+    const response = await api()
+      .post('/api/boards')
+      .set('cookie', sessionCookie(user.token))
+      .set('sec-fetch-site', 'cross-site')
+      .send({ title: 'Forged board' })
+
+    expect(response.status).toBe(403)
+  })
+
+  it('allows the same request from the application itself', async () => {
+    const user = await createUser()
+    const response = await api()
+      .post('/api/boards')
+      .set('cookie', sessionCookie(user.token))
+      .set('sec-fetch-site', 'same-origin')
+      .send({ title: 'Real board' })
+
+    expect(response.status).toBe(201)
   })
 })

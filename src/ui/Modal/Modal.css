@@ -1,6 +1,7 @@
 .rb-modal {
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  overflow: clip;
+  margin: auto;
+  flex-direction: column;
   width: min(680px, calc(100vw - var(--sp-5)));
   max-height: calc(100vh - var(--sp-5));
   border: var(--border-heavy) solid var(--border-color);
@@ -11,12 +12,17 @@
   color: var(--content-primary);
 }
 
+.rb-modal[open] {
+  display: flex;
+}
+
 .rb-modal::backdrop {
   background-color: var(--overlay-backdrop);
 }
 
 .rb-modal__header {
   display: flex;
+  flex: 0 0 auto;
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--sp-3);
@@ -50,12 +56,16 @@
 }
 
 .rb-modal__body {
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
   padding: var(--sp-4);
 }
 
 .rb-modal__footer {
   display: flex;
+  flex: 0 0 auto;
   justify-content: flex-end;
   gap: var(--sp-2);
   border-top: var(--border-thick) solid var(--border-color);

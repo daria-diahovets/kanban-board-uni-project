@@ -8,9 +8,6 @@
 }
 
 .rb-lane__head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
   gap: var(--sp-2);
   border-bottom: var(--border-thick) solid var(--border-color);
   padding-bottom: var(--sp-2);
@@ -23,6 +20,7 @@
 
 .rb-lane__meta {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--sp-2);
 }

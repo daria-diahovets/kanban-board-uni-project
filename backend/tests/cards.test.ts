@@ -2,7 +2,7 @@ import { readFile, readdir } from 'node:fs/promises'
 import { join } from 'node:path'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { prisma } from '../src/config/prisma'
-import { api, bearer } from './helpers/api'
+import { api, sessionCookie } from './helpers/api'
 import { temporaryUploadDirectory } from './helpers/env'
 import {
   addBoardMember,
@@ -50,7 +50,7 @@ beforeEach(async () => {
 })
 
 function asUser(user: TestUser) {
-  return bearer(user.token)
+  return sessionCookie(user.token)
 }
 
 function daysFromNow(days: number) {
@@ -61,7 +61,7 @@ function daysFromNow(days: number) {
 }
 
 async function boardTree(user: TestUser, query = '') {
-  return api().get(`/api/boards/${fixture.boardId}${query}`).set('authorization', asUser(user))
+  return api().get(`/api/boards/${fixture.boardId}${query}`).set('cookie', asUser(user))
 }
 
 async function cardsInTree(user: TestUser, query = '') {
@@ -76,7 +76,7 @@ describe('POST /api/columns/:columnId/cards', () => {
     const dueDate = daysFromNow(2).toISOString()
     const response = await api()
       .post(`/api/columns/${fixture.todoId}/cards`)
-      .set('authorization', asUser(fixture.member))
+      .set('cookie', asUser(fixture.member))
       .send({
         title: 'Write the report',
         description: 'Two pages, no more',
@@ -102,7 +102,7 @@ describe('POST /api/columns/:columnId/cards', () => {
     for (const title of ['First', 'Second', 'Third']) {
       await api()
         .post(`/api/columns/${fixture.todoId}/cards`)
-        .set('authorization', asUser(fixture.member))
+        .set('cookie', asUser(fixture.member))
         .send({ title })
     }
 
@@ -119,7 +119,7 @@ describe('POST /api/columns/:columnId/cards', () => {
   it('refuses an assignee who is not a board member', async () => {
     const response = await api()
       .post(`/api/columns/${fixture.todoId}/cards`)
-      .set('authorization', asUser(fixture.member))
+      .set('cookie', asUser(fixture.member))
       .send({ title: 'Nope', assigneeIds: [fixture.outsider.id] })
 
     expect(response.status).toBe(400)
@@ -132,7 +132,7 @@ describe('POST /api/columns/:columnId/cards', () => {
 
     const response = await api()
       .post(`/api/columns/${limited.id}/cards`)
-      .set('authorization', asUser(fixture.member))
+      .set('cookie', asUser(fixture.member))
       .send({ title: 'One too many' })
 
     expect(response.status).toBe(409)
@@ -146,7 +146,7 @@ describe('POST /api/columns/:columnId/cards', () => {
 
     const response = await api()
       .post(`/api/columns/${limited.id}/cards`)
-      .set('authorization', asUser(fixture.member))
+      .set('cookie', asUser(fixture.member))
       .send({ title: 'Fits now' })
 
     expect(response.status).toBe(201)
@@ -155,11 +155,11 @@ describe('POST /api/columns/:columnId/cards', () => {
   it('rejects a viewer and an outsider', async () => {
     const asViewer = await api()
       .post(`/api/columns/${fixture.todoId}/cards`)
-      .set('authorization', asUser(fixture.viewer))
+      .set('cookie', asUser(fixture.viewer))
       .send({ title: 'Not allowed' })
     const asOutsider = await api()
       .post(`/api/columns/${fixture.todoId}/cards`)
-      .set('authorization', asUser(fixture.outsider))
+      .set('cookie', asUser(fixture.outsider))
       .send({ title: 'Not allowed' })
 
     expect(asViewer.status).toBe(403)
@@ -170,9 +170,7 @@ describe('POST /api/columns/:columnId/cards', () => {
 describe('GET PATCH DELETE /api/cards/:cardId', () => {
   it('returns a card with its relation counts', async () => {
     const card = await createCard(fixture.todoId, fixture.owner.id, { title: 'Readable' })
-    const response = await api()
-      .get(`/api/cards/${card.id}`)
-      .set('authorization', asUser(fixture.viewer))
+    const response = await api().get(`/api/cards/${card.id}`).set('cookie', asUser(fixture.viewer))
 
     expect(response.status).toBe(200)
     expect(response.body.card).toMatchObject({ id: card.id, title: 'Readable' })
@@ -182,7 +180,7 @@ describe('GET PATCH DELETE /api/cards/:cardId', () => {
   it('answers 404 for an unknown card', async () => {
     const response = await api()
       .get('/api/cards/00000000-0000-4000-8000-000000000000')
-      .set('authorization', asUser(fixture.member))
+      .set('cookie', asUser(fixture.member))
 
     expect(response.status).toBe(404)
   })
@@ -192,7 +190,7 @@ describe('GET PATCH DELETE /api/cards/:cardId', () => {
     const dueDate = daysFromNow(5).toISOString()
     const response = await api()
       .patch(`/api/cards/${card.id}`)
-      .set('authorization', asUser(fixture.member))
+      .set('cookie', asUser(fixture.member))
       .send({ title: 'After', description: 'Edited', dueDate })
 
     expect(response.status).toBe(200)
@@ -204,11 +202,11 @@ describe('GET PATCH DELETE /api/cards/:cardId', () => {
 
     const first = await api()
       .patch(`/api/cards/${card.id}`)
-      .set('authorization', asUser(fixture.member))
+      .set('cookie', asUser(fixture.member))
       .send({ title: 'Won the race', version: 1 })
     const second = await api()
       .patch(`/api/cards/${card.id}`)
-      .set('authorization', asUser(fixture.owner))
+      .set('cookie', asUser(fixture.owner))
       .send({ title: 'Lost the race', version: 1 })
 
     expect(first.status).toBe(200)
@@ -224,7 +222,7 @@ describe('GET PATCH DELETE /api/cards/:cardId', () => {
     const card = await createCard(fixture.todoId, fixture.owner.id, { title: 'Archive me' })
     const response = await api()
       .patch(`/api/cards/${card.id}`)
-      .set('authorization', asUser(fixture.member))
+      .set('cookie', asUser(fixture.member))
       .send({ isArchived: true })
 
     expect(response.status).toBe(200)
@@ -235,7 +233,7 @@ describe('GET PATCH DELETE /api/cards/:cardId', () => {
     const card = await createCard(fixture.todoId, fixture.owner.id, { title: 'Delete me' })
     const response = await api()
       .delete(`/api/cards/${card.id}`)
-      .set('authorization', asUser(fixture.member))
+      .set('cookie', asUser(fixture.member))
 
     expect(response.status).toBe(204)
     expect(await prisma.card.count({ where: { id: card.id } })).toBe(0)
@@ -355,11 +353,11 @@ describe('card comments', () => {
 
     const first = await api()
       .post(`/api/cards/${card.id}/comments`)
-      .set('authorization', asUser(fixture.member))
+      .set('cookie', asUser(fixture.member))
       .send({ body: 'First thought' })
     const second = await api()
       .post(`/api/cards/${card.id}/comments`)
-      .set('authorization', asUser(fixture.owner))
+      .set('cookie', asUser(fixture.owner))
       .send({ body: 'Second thought' })
 
     expect(first.status).toBe(201)
@@ -369,7 +367,7 @@ describe('card comments', () => {
 
     const listed = await api()
       .get(`/api/cards/${card.id}/comments`)
-      .set('authorization', asUser(fixture.viewer))
+      .set('cookie', asUser(fixture.viewer))
 
     expect(listed.status).toBe(200)
     expect(listed.body.comments.map((comment: { body: string }) => comment.body)).toEqual([
@@ -379,7 +377,7 @@ describe('card comments', () => {
 
     const edited = await api()
       .patch(`/api/comments/${first.body.comment.id}`)
-      .set('authorization', asUser(fixture.member))
+      .set('cookie', asUser(fixture.member))
       .send({ body: 'Edited thought' })
 
     expect(edited.status).toBe(200)
@@ -387,7 +385,7 @@ describe('card comments', () => {
 
     const deleted = await api()
       .delete(`/api/comments/${first.body.comment.id}`)
-      .set('authorization', asUser(fixture.member))
+      .set('cookie', asUser(fixture.member))
 
     expect(deleted.status).toBe(204)
     expect(await prisma.comment.count({ where: { cardId: card.id } })).toBe(1)
@@ -397,12 +395,12 @@ describe('card comments', () => {
     const card = await createCard(fixture.todoId, fixture.owner.id, { title: 'Discussed' })
     const created = await api()
       .post(`/api/cards/${card.id}/comments`)
-      .set('authorization', asUser(fixture.member))
+      .set('cookie', asUser(fixture.member))
       .send({ body: 'Mine' })
 
     const byOwner = await api()
       .patch(`/api/comments/${created.body.comment.id}`)
-      .set('authorization', asUser(fixture.owner))
+      .set('cookie', asUser(fixture.owner))
       .send({ body: 'Rewritten by the owner' })
 
     expect(byOwner.status).toBe(403)
@@ -416,18 +414,18 @@ describe('card comments', () => {
 
     const created = await api()
       .post(`/api/cards/${card.id}/comments`)
-      .set('authorization', asUser(fixture.member))
+      .set('cookie', asUser(fixture.member))
       .send({ body: 'Mine' })
 
     const byOtherMember = await api()
       .delete(`/api/comments/${created.body.comment.id}`)
-      .set('authorization', asUser(otherMember))
+      .set('cookie', asUser(otherMember))
 
     expect(byOtherMember.status).toBe(403)
 
     const byOwner = await api()
       .delete(`/api/comments/${created.body.comment.id}`)
-      .set('authorization', asUser(fixture.owner))
+      .set('cookie', asUser(fixture.owner))
 
     expect(byOwner.status).toBe(204)
   })
@@ -437,15 +435,15 @@ describe('card comments', () => {
 
     const asViewer = await api()
       .post(`/api/cards/${card.id}/comments`)
-      .set('authorization', asUser(fixture.viewer))
+      .set('cookie', asUser(fixture.viewer))
       .send({ body: 'Not allowed' })
     const empty = await api()
       .post(`/api/cards/${card.id}/comments`)
-      .set('authorization', asUser(fixture.member))
+      .set('cookie', asUser(fixture.member))
       .send({ body: '   ' })
     const unknown = await api()
       .delete('/api/comments/00000000-0000-4000-8000-000000000000')
-      .set('authorization', asUser(fixture.member))
+      .set('cookie', asUser(fixture.member))
 
     expect(asViewer.status).toBe(403)
     expect(empty.status).toBe(422)
@@ -460,7 +458,7 @@ describe('card checklist', () => {
     for (const text of ['Draft it', 'Review it', 'Ship it']) {
       const created = await api()
         .post(`/api/cards/${card.id}/checklist`)
-        .set('authorization', asUser(fixture.member))
+        .set('cookie', asUser(fixture.member))
         .send({ text })
 
       expect(created.status).toBe(201)
@@ -469,7 +467,7 @@ describe('card checklist', () => {
 
     const listed = await api()
       .get(`/api/cards/${card.id}/checklist`)
-      .set('authorization', asUser(fixture.viewer))
+      .set('cookie', asUser(fixture.viewer))
 
     expect(listed.status).toBe(200)
     expect(listed.body.items.map((item: { text: string }) => item.text)).toEqual([
@@ -488,13 +486,13 @@ describe('card checklist', () => {
     const card = await createCard(fixture.todoId, fixture.owner.id, { title: 'Has a checklist' })
     const created = await api()
       .post(`/api/cards/${card.id}/checklist`)
-      .set('authorization', asUser(fixture.member))
+      .set('cookie', asUser(fixture.member))
       .send({ text: 'Draft it' })
     const itemId = created.body.item.id as string
 
     const toggled = await api()
       .patch(`/api/checklist/${itemId}`)
-      .set('authorization', asUser(fixture.member))
+      .set('cookie', asUser(fixture.member))
       .send({ isDone: true })
 
     expect(toggled.status).toBe(200)
@@ -502,7 +500,7 @@ describe('card checklist', () => {
 
     const renamed = await api()
       .patch(`/api/checklist/${itemId}`)
-      .set('authorization', asUser(fixture.owner))
+      .set('cookie', asUser(fixture.owner))
       .send({ text: 'Draft it properly' })
 
     expect(renamed.status).toBe(200)
@@ -510,7 +508,7 @@ describe('card checklist', () => {
 
     const deleted = await api()
       .delete(`/api/checklist/${itemId}`)
-      .set('authorization', asUser(fixture.member))
+      .set('cookie', asUser(fixture.member))
 
     expect(deleted.status).toBe(204)
     expect(await prisma.checklistItem.count({ where: { cardId: card.id } })).toBe(0)
@@ -520,7 +518,7 @@ describe('card checklist', () => {
     const card = await createCard(fixture.todoId, fixture.owner.id, { title: 'Has a checklist' })
     const created = await api()
       .post(`/api/cards/${card.id}/checklist`)
-      .set('authorization', asUser(fixture.member))
+      .set('cookie', asUser(fixture.member))
       .send({ text: 'Already handled', isDone: true })
 
     expect(created.status).toBe(201)
@@ -531,24 +529,24 @@ describe('card checklist', () => {
     const card = await createCard(fixture.todoId, fixture.owner.id, { title: 'Has a checklist' })
     const created = await api()
       .post(`/api/cards/${card.id}/checklist`)
-      .set('authorization', asUser(fixture.member))
+      .set('cookie', asUser(fixture.member))
       .send({ text: 'Draft it' })
 
     const asViewer = await api()
       .post(`/api/cards/${card.id}/checklist`)
-      .set('authorization', asUser(fixture.viewer))
+      .set('cookie', asUser(fixture.viewer))
       .send({ text: 'Not allowed' })
     const empty = await api()
       .post(`/api/cards/${card.id}/checklist`)
-      .set('authorization', asUser(fixture.member))
+      .set('cookie', asUser(fixture.member))
       .send({ text: '  ' })
     const nothingToUpdate = await api()
       .patch(`/api/checklist/${created.body.item.id}`)
-      .set('authorization', asUser(fixture.member))
+      .set('cookie', asUser(fixture.member))
       .send({})
     const unknown = await api()
       .delete('/api/checklist/00000000-0000-4000-8000-000000000000')
-      .set('authorization', asUser(fixture.member))
+      .set('cookie', asUser(fixture.member))
 
     expect(asViewer.status).toBe(403)
     expect(empty.status).toBe(422)
@@ -563,7 +561,7 @@ describe('card attachments', () => {
   async function upload(user: TestUser, cardId: string, filename: string, contentType: string) {
     return api()
       .post(`/api/cards/${cardId}/attachments`)
-      .set('authorization', asUser(user))
+      .set('cookie', asUser(user))
       .attach('file', textFile, { filename, contentType })
   }
 
@@ -592,14 +590,12 @@ describe('card attachments', () => {
 
     const listed = await api()
       .get(`/api/cards/${card.id}/attachments`)
-      .set('authorization', asUser(fixture.viewer))
+      .set('cookie', asUser(fixture.viewer))
 
     expect(listed.status).toBe(200)
     expect(listed.body.attachments).toHaveLength(1)
 
-    const detail = await api()
-      .get(`/api/cards/${card.id}`)
-      .set('authorization', asUser(fixture.viewer))
+    const detail = await api().get(`/api/cards/${card.id}`).set('cookie', asUser(fixture.viewer))
 
     expect(detail.body.card._count.attachments).toBe(1)
   })
@@ -610,7 +606,7 @@ describe('card attachments', () => {
 
     const downloaded = await api()
       .get(`/api/attachments/${created.body.attachment.id}/download`)
-      .set('authorization', asUser(fixture.viewer))
+      .set('cookie', asUser(fixture.viewer))
       .responseType('blob')
 
     expect(downloaded.status).toBe(200)
@@ -625,7 +621,7 @@ describe('card attachments', () => {
 
     const response = await api()
       .post(`/api/cards/${card.id}/attachments`)
-      .set('authorization', asUser(fixture.member))
+      .set('cookie', asUser(fixture.member))
       .attach('file', oversized, { filename: 'huge.txt', contentType: 'text/plain' })
 
     expect(response.status).toBe(413)
@@ -646,7 +642,7 @@ describe('card attachments', () => {
     const card = await createCard(fixture.todoId, fixture.owner.id, { title: 'Has a file' })
     const response = await api()
       .post(`/api/cards/${card.id}/attachments`)
-      .set('authorization', asUser(fixture.member))
+      .set('cookie', asUser(fixture.member))
 
     expect(response.status).toBe(400)
     expect(response.body.error.message).toContain('file')
@@ -659,7 +655,7 @@ describe('card attachments', () => {
     const uploadAttempt = await upload(fixture.viewer, card.id, 'notes.txt', 'text/plain')
     const deleteAttempt = await api()
       .delete(`/api/attachments/${created.body.attachment.id}`)
-      .set('authorization', asUser(fixture.viewer))
+      .set('cookie', asUser(fixture.viewer))
 
     expect(uploadAttempt.status).toBe(403)
     expect(deleteAttempt.status).toBe(403)
@@ -675,7 +671,7 @@ describe('card attachments', () => {
 
     const response = await api()
       .delete(`/api/attachments/${created.body.attachment.id}`)
-      .set('authorization', asUser(fixture.member))
+      .set('cookie', asUser(fixture.member))
 
     expect(response.status).toBe(204)
     expect(await prisma.attachment.count()).toBe(0)
@@ -685,10 +681,10 @@ describe('card attachments', () => {
   it('answers 404 for an unknown attachment', async () => {
     const download = await api()
       .get('/api/attachments/00000000-0000-4000-8000-000000000000/download')
-      .set('authorization', asUser(fixture.member))
+      .set('cookie', asUser(fixture.member))
     const removal = await api()
       .delete('/api/attachments/00000000-0000-4000-8000-000000000000')
-      .set('authorization', asUser(fixture.member))
+      .set('cookie', asUser(fixture.member))
 
     expect(download.status).toBe(404)
     expect(removal.status).toBe(404)

@@ -5,10 +5,9 @@ import { z } from 'zod'
 import { env } from '../config/env'
 import { ApiError } from '../lib/ApiError'
 import { verifyAccessToken } from '../lib/jwt'
+import { readSessionCookieHeader } from '../lib/sessionCookie'
 import { getBoardAccess } from '../services/boardAccess.service'
 import { CLIENT_EVENTS, boardRoom } from './events'
-
-const BEARER_PREFIX = 'Bearer '
 
 const boardIdSchema = z.uuid()
 
@@ -17,19 +16,7 @@ type RoomAcknowledgement = (result: { joined?: string; left?: string; error?: st
 let server: Server | null = null
 
 function readHandshakeToken(socket: Socket) {
-  const fromAuth = socket.handshake.auth?.token
-
-  if (typeof fromAuth === 'string' && fromAuth.length > 0) {
-    return fromAuth
-  }
-
-  const header = socket.handshake.headers.authorization
-
-  if (typeof header === 'string' && header.startsWith(BEARER_PREFIX)) {
-    return header.slice(BEARER_PREFIX.length).trim()
-  }
-
-  return null
+  return readSessionCookieHeader(socket.handshake.headers.cookie)
 }
 
 function acknowledge(result: Parameters<RoomAcknowledgement>[0], callback: unknown) {
@@ -89,7 +76,7 @@ export function initializeRealtime(httpServer: HttpServer) {
     const token = readHandshakeToken(socket)
 
     if (!token) {
-      next(new Error('Authentication token is required'))
+      next(new Error('A session cookie is required'))
       return
     }
 

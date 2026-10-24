@@ -6,6 +6,7 @@
 }
 
 .rb-shell__main {
+  min-width: 0;
   flex: 1;
   padding: var(--sp-5) var(--sp-4);
 }

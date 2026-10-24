@@ -1,18 +1,17 @@
 import type { RequestHandler } from 'express'
 import { ApiError } from '../lib/ApiError'
 import { verifyAccessToken } from '../lib/jwt'
-
-const BEARER_PREFIX = 'Bearer '
+import { SESSION_COOKIE_NAME } from '../lib/sessionCookie'
 
 export const authenticate: RequestHandler = (request, _response, next) => {
-  const header = request.headers.authorization
+  const token = request.cookies?.[SESSION_COOKIE_NAME]
 
-  if (!header || !header.startsWith(BEARER_PREFIX)) {
-    next(ApiError.unauthorized('Authorization header with a bearer token is required'))
+  if (typeof token !== 'string' || token.length === 0) {
+    next(ApiError.unauthorized('A session cookie is required'))
     return
   }
 
-  const payload = verifyAccessToken(header.slice(BEARER_PREFIX.length).trim())
+  const payload = verifyAccessToken(token)
 
   request.user = {
     id: payload.sub,

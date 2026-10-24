@@ -54,6 +54,7 @@
 
   .rb-filters__search {
     width: 100%;
+    flex: unset;
   }
 
   .rb-filters__summary {

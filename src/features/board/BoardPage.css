@@ -1,5 +1,6 @@
 .rb-board {
   display: flex;
+  min-width: 0;
   flex-direction: column;
   gap: var(--sp-4);
 }
